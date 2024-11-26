@@ -16,7 +16,7 @@ const Login: React.FC = () => {
   const handleLogin = () =>
     // values: { email: string; password: string }
     {
-      navigate("/home");
+      navigate("/agents");
     };
 
   return (

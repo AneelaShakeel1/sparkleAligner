@@ -1,10 +1,11 @@
 import React from "react";
 import { Route, Routes, useLocation } from "react-router-dom";
 import Sidebar from "./components/Sidebar/Sidebar";
-import Home from "./pages/Home/Home";
-import Settings from "./pages/Settings/Settings";
+import Agents from "./pages/Agents/Agents";
+import Doctors from "./pages/Doctors/Doctors";
+import Clients from "./pages/Clients/Clients";
+import AddUser from "./pages/AddUser/AddUser";
 import Login from "./pages/Login/Login";
-import FAQ from "./pages/FAQ/FAQ";
 import "./App.css";
 
 const App: React.FC = () => {
@@ -18,9 +19,10 @@ const App: React.FC = () => {
       <>
         <Routes>
           <Route path="/" element={<Login />} />
-          <Route path="/home" element={<Home />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/faq" element={<FAQ />} />
+          <Route path="/agents" element={<Agents />} />
+          <Route path="/doctors" element={<Doctors />} />
+          <Route path="/clients" element={<Clients />} />
+          <Route path="/add-user" element={<AddUser />} />
         </Routes>
       </>
     </>
