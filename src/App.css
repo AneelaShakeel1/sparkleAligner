@@ -1,0 +1,10 @@
+@font-face {
+  font-family: '20db';
+  src: url('./assets/fonts/20db.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+body{
+  margin: 0;
+}

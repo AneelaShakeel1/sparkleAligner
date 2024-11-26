@@ -1,0 +1,171 @@
+// Mixins for responsive breakpoints
+@mixin mobile {
+  @media (max-width: 480px) {
+    @content;
+  }
+}
+
+@mixin tablet {
+  @media (max-width: 768px) {
+    @content;
+  }
+}
+
+.login-container {
+  display: flex;
+  justify-content: center;
+  height: 100dvh;
+  overflow: hidden;
+  position: relative;
+}
+
+.login-background {
+  position: absolute;
+  height: 100%;
+  width: 100%; 
+  background: {
+    image: url("../../assets/images/BG.jpg");
+    size: cover;
+    position: center;
+  }
+}
+
+.login-overlay {
+  position: absolute;
+  top: 17%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  color: #fff;
+
+  @include tablet {
+    top: 15%;
+    width: 90%;
+  }
+
+  @include mobile {
+    top: 12%;
+  }
+}
+
+.login-title {
+  font-size: 2rem; 
+  font-family: '20db';
+
+  @include mobile {
+    font-size: 1.75rem;
+  }
+}
+
+.login-subtitle {
+  font-size: 1.2rem;
+  margin-top: -15px;
+  font-family: 'Roboto';
+
+  @include mobile {
+    font-size: 1rem;
+    margin-top: -10px;
+  }
+}
+
+.login-form-wrapper {
+  max-width: 400px;
+  width: 90%;
+  padding: 20px 30px;
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+  position: absolute;
+  top: 30%;
+  font-family: 'Roboto';
+
+  @include tablet {
+    width: 80%;
+    padding: 20px;
+  }
+
+  @include mobile {
+    width: 85%;
+    padding: 15px;
+    top: 25%;
+  }
+}
+
+.login-form-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.login-input {
+  margin: 10px 0;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 14px;
+  font-family: 'Roboto';
+
+  &:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+  }
+}
+
+.error-message {
+  color: red;
+  font-size: 12px;
+  margin-bottom: 10px;
+}
+
+.forgot-password {
+  text-align: right;
+  color: #007bff;
+  font-size: 14px;
+  cursor: pointer;
+  margin-bottom: 20px;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.login-button {
+  padding: 10px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background-color: #0056b3;
+  }
+
+  @include mobile {
+    font-size: 14px;
+    padding: 12px;
+  }
+}
+
+.footer-text {
+  text-align: center;
+  margin-top: 15px;
+  font-size: 14px;
+  color: #555;
+
+  a {
+    color: #007bff;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  @include mobile {
+    font-size: 12px;
+    margin-top: 12px;
+  }
+} 
