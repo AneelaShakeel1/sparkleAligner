@@ -6,6 +6,9 @@ import Doctors from "./pages/Doctors/Doctors";
 import Clients from "./pages/Clients/Clients";
 import AddUser from "./pages/AddUser/AddUser";
 import Login from "./pages/Login/Login";
+import EditAgent from "./components/EditAgent/EditAgent";
+import EditClient from "./components/EditClient/EditClient";
+import EditDoctor from "./components/EditDoctor/EditDoctor";
 import "./App.css";
 
 const App: React.FC = () => {
@@ -23,6 +26,9 @@ const App: React.FC = () => {
           <Route path="/doctors" element={<Doctors />} />
           <Route path="/clients" element={<Clients />} />
           <Route path="/add-user" element={<AddUser />} />
+          <Route path="/agents/edit/:key" element={<EditAgent />} />
+          <Route path="/clients/edit/:key" element={<EditClient />} />
+          <Route path="/doctors/edit/:key" element={<EditDoctor />} />
         </Routes>
       </>
     </>

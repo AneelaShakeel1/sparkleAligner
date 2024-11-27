@@ -1,6 +1,8 @@
-import React, { useState } from "react";
-import { Input, Table, Button, Pagination } from "antd";
+import React, { useState, useEffect } from "react";
+import { Input, Table, Button, Pagination, Modal } from "antd";
+import { useNavigate } from "react-router-dom";
 import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
+import { useLocation } from "react-router-dom";
 import "./Agents.css";
 
 const { Search } = Input;
@@ -15,6 +17,9 @@ interface AgentData {
 }
 
 const Agents: React.FC = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const [agents, setAgents] = useState<AgentData[]>([
     {
       key: "1",
@@ -41,9 +46,19 @@ const Agents: React.FC = () => {
       status: "Inactive",
     },
   ]);
-  
+
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 5;
+
+  const confirmDelete = (key: string) => {
+    Modal.confirm({
+      title: "Are you sure you want to delete this agent?",
+      content: "This action cannot be undone.",
+      okText: "Yes",
+      cancelText: "No",
+      onOk: () => handleDelete(key),
+    });
+  };
 
   const onSearch = (value: string) => {
     console.log(value);
@@ -54,8 +69,26 @@ const Agents: React.FC = () => {
   };
 
   const handleUpdate = (key: string) => {
-    console.log(`Update agent with key ${key}`);
+    const agentToEdit = agents.find((a) => a.key === key);
+    if (agentToEdit) {
+      navigate(`/agents/edit/${key}`, {
+        state: {
+          agent: agentToEdit,
+        },
+      });
+    }
   };
+
+  useEffect(() => {
+    if (location.state?.updatedAgent) {
+      const updatedAgent = location.state.updatedAgent;
+      setAgents((prevAgents) =>
+        prevAgents.map((agent) =>
+          agent.key === updatedAgent.key ? updatedAgent : agent
+        )
+      );
+    }
+  }, [location.state]);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -87,7 +120,7 @@ const Agents: React.FC = () => {
           />
           <Button
             icon={<DeleteOutlined />}
-            onClick={() => handleDelete(record.key)}
+            onClick={() => confirmDelete(record.key)}
           />
         </>
       ),
@@ -99,7 +132,7 @@ const Agents: React.FC = () => {
       <Search
         placeholder="Search agents"
         onSearch={onSearch}
-        style={{ width: "100%", marginBottom: 20}}
+        style={{ width: "100%", marginBottom: 20 }}
       />
       <Table
         columns={columns}
