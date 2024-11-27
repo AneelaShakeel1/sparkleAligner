@@ -11,12 +11,13 @@ import EditClient from "./components/EditClient/EditClient";
 import EditDoctor from "./components/EditDoctor/EditDoctor";
 import DoctorPortal from "./pages/DoctorPortal/DoctorPortal";
 import AgentPortal from "./pages/AgentPortal/AgentPortal";
+import SuperAdminPortal from "./pages/SuperAdminPortal/SuperAdminPortal";
 import "./App.css";
 
 const App: React.FC = () => {
   const location = useLocation();
 
-  const noSidebarPages = ["/", "/doctor-portal", "/agent-portal"];
+  const noSidebarPages = ["/", "/doctor-portal", "/agent-portal","/super-admin-dashboard"];
   const isNoSidebarPage = noSidebarPages.includes(location.pathname);
 
   return (
@@ -25,6 +26,7 @@ const App: React.FC = () => {
       <Routes>
         <Route path="/" element={<Login />} />
         {/* super admin */}
+        <Route path="/super-admin-dashboard" element={<SuperAdminPortal />} />
         <Route path="/agents" element={<Agents />} />
         <Route path="/doctors" element={<Doctors />} />
         <Route path="/clients" element={<Clients />} />
