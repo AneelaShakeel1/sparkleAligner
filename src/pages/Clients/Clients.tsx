@@ -170,6 +170,7 @@ const Clients: React.FC = () => {
         total={clients.length}
         pageSize={pageSize}
         onChange={handlePageChange}
+        className="center-pagination"
         style={{ marginTop: 20 }}
       />
     </div>

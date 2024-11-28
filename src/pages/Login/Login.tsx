@@ -2,9 +2,10 @@ import React from "react";
 import { Formik } from "formik";
 import { useNavigate } from "react-router-dom";
 import * as Yup from "yup";
-import { Modal } from "antd";
+// import { Modal } from "antd";
 import "./Login.css";
-
+import axios from "axios";
+import { message } from "antd";
 const LoginSchema = Yup.object().shape({
   email: Yup.string().email("Invalid email").required("Email is required"),
   password: Yup.string()
@@ -15,42 +16,59 @@ const LoginSchema = Yup.object().shape({
 const Login: React.FC = () => {
   const navigate = useNavigate();
 
-  const determineRole = (email: string): string => {
-    if (email.startsWith("doctor@")) return "doctor";
-    if (email.startsWith("agent@")) return "agent";
-    if (email.startsWith("superadmin@")) return "superadmin";
-    Modal.error({
-      title: "Invalid Email",
-      content: (
-        <>
-          <p>The email provided does not match any valid roles.</p>
-          <p>Please make sure your email is one of the following:</p>
-          <ul>
-            <li>agent@gmail.com</li>
-            <li>doctor@gmail.com</li>
-            <li>superadmin@gmail.com</li>
-          </ul>
-        </>
-      ),
-    });
-    return "";
-  };
+  // const determineRole = (email: string): string => {
+  //   if (email.startsWith("doctor@")) return "doctor";
+  //   if (email.startsWith("agent@")) return "agent";
+  //   if (email.startsWith("superadmin@")) return "superadmin";
+  //   Modal.error({
+  //     title: "Invalid Email",
+  //     content: (
+  //       <>
+  //         <p>The email provided does not match any valid roles.</p>
+  //         <p>Please make sure your email is one of the following:</p>
+  //         <ul>
+  //           <li>agent@gmail.com</li>
+  //           <li>doctor@gmail.com</li>
+  //           <li>superadmin@gmail.com</li>
+  //         </ul>
+  //       </>
+  //     ),
+  //   });
+  //   return "";
+  // };
 
-  const handleLogin = (values: { email: string; password: string }) => {
-    const role = determineRole(values.email);
-    if (role) {
-      switch (role) {
-        case "superadmin":
-          navigate("/agents");
-          break;
-        case "agent":
-          navigate("/agent-portal");
-          break;
-        case "doctor":
-          navigate("/doctor-portal");
-          break;
-      }
+  const handleLogin = async (values: { email: string; password: string }) => {
+    const payload = {
+      email: values.email,
+      password: values.password,
+    };
+    const response = await axios.post(
+      "http://localhost:5000/api/auth/admin",
+      payload
+    );
+
+    if (response) {
+      localStorage.setItem("token", response.data.token);
+      message.success(response.data.message);
+      setTimeout(() => {
+        navigate("/agents");
+      }, 1000);
     }
+    console.log(response.data.token, "response=================");
+    // const role = determineRole(values.email);
+    // if (role) {
+    //   switch (role) {
+    //     case "superadmin":
+    //       navigate("/agents");
+    //       break;
+    //     case "agent":
+    //       navigate("/agent-portal");
+    //       break;
+    //     case "doctor":
+    //       navigate("/doctor-portal");
+    //       break;
+    //   }
+    // }
   };
 
   return (

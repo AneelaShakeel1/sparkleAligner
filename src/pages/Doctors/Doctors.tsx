@@ -210,6 +210,7 @@ const Doctors: React.FC = () => {
         total={doctors.length}
         pageSize={pageSize}
         onChange={handlePageChange}
+        className="center-pagination"
         style={{ marginTop: 20 }}
       />
     </div>

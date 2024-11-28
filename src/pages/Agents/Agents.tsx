@@ -147,7 +147,8 @@ const Agents: React.FC = () => {
         total={agents.length}
         pageSize={pageSize}
         onChange={handlePageChange}
-        style={{ marginTop: 20 }}
+        className="center-pagination"
+        style={{ marginTop: 20}}
       />
     </div>
   );

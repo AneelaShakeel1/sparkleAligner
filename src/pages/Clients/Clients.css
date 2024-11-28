@@ -6,4 +6,11 @@
     padding-top: 30px;
     padding-bottom: 30px;
   }
-  
+
+.center-pagination .ant-pagination-item,
+.center-pagination .ant-pagination-prev,
+.center-pagination .ant-pagination-next {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
