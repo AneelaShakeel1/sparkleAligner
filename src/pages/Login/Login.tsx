@@ -1,43 +1,29 @@
-import React from "react";
+import React, { useState } from "react";
 import { Formik } from "formik";
 import { useNavigate } from "react-router-dom";
 import * as Yup from "yup";
-// import { Modal } from "antd";
 import "./Login.css";
 import axios from "axios";
-import { message } from "antd";
+import { message, Select } from "antd";
+import { EyeInvisibleOutlined, EyeOutlined } from "@ant-design/icons";
+
 const LoginSchema = Yup.object().shape({
   email: Yup.string().email("Invalid email").required("Email is required"),
   password: Yup.string()
     .min(6, "Password must be at least 6 characters")
     .required("Password is required"),
+  role: Yup.string().required("Role is required"),
 });
 
 const Login: React.FC = () => {
+  const [passwordVisible, setPasswordVisible] = useState(false);
   const navigate = useNavigate();
 
-  // const determineRole = (email: string): string => {
-  //   if (email.startsWith("doctor@")) return "doctor";
-  //   if (email.startsWith("agent@")) return "agent";
-  //   if (email.startsWith("superadmin@")) return "superadmin";
-  //   Modal.error({
-  //     title: "Invalid Email",
-  //     content: (
-  //       <>
-  //         <p>The email provided does not match any valid roles.</p>
-  //         <p>Please make sure your email is one of the following:</p>
-  //         <ul>
-  //           <li>agent@gmail.com</li>
-  //           <li>doctor@gmail.com</li>
-  //           <li>superadmin@gmail.com</li>
-  //         </ul>
-  //       </>
-  //     ),
-  //   });
-  //   return "";
-  // };
-
-  const handleLogin = async (values: { email: string; password: string }) => {
+  const handleLogin = async (values: {
+    email: string;
+    password: string;
+    role: string | null;
+  }) => {
     const payload = {
       email: values.email,
       password: values.password,
@@ -51,24 +37,17 @@ const Login: React.FC = () => {
       localStorage.setItem("token", response.data.token);
       message.success(response.data.message);
       setTimeout(() => {
-        navigate("/agents");
+        const role = values.role;
+        if (role) {
+          role === "superadmin"
+            ? navigate("/agents")
+            : role === "agent"
+            ? navigate("/agent-portal")
+            : navigate("/doctor-portal");
+        }
       }, 1000);
     }
     console.log(response.data.token, "response=================");
-    // const role = determineRole(values.email);
-    // if (role) {
-    //   switch (role) {
-    //     case "superadmin":
-    //       navigate("/agents");
-    //       break;
-    //     case "agent":
-    //       navigate("/agent-portal");
-    //       break;
-    //     case "doctor":
-    //       navigate("/doctor-portal");
-    //       break;
-    //   }
-    // }
   };
 
   return (
@@ -81,7 +60,7 @@ const Login: React.FC = () => {
       </div>
       <div className="login-form-wrapper">
         <Formik
-          initialValues={{ email: "", password: "" }}
+          initialValues={{ email: "", password: "", role: null }}
           onSubmit={handleLogin}
           validationSchema={LoginSchema}
         >
@@ -106,9 +85,8 @@ const Login: React.FC = () => {
               {touched.email && errors.email && (
                 <div className="error-message">{errors.email}</div>
               )}
-
               <input
-                type="password"
+                type={passwordVisible ? "text" : "password"}
                 name="password"
                 placeholder="Password"
                 value={values.password}
@@ -116,9 +94,43 @@ const Login: React.FC = () => {
                 onBlur={handleBlur("password")}
                 className="login-input"
               />
+              <span
+                style={{
+                  position: "absolute",
+                  top:
+                    errors.password && errors.email
+                      ? "28%"
+                      : errors.password
+                      ? "25%"
+                      : errors.email
+                      ? "29%"
+                      : "26%",
+                  right: "9%",
+                  color: "#ddd",
+                }}
+                onClick={() => setPasswordVisible(!passwordVisible)}
+              >
+                {passwordVisible ? <EyeOutlined /> : <EyeInvisibleOutlined />}
+              </span>
               {touched.password && errors.password && (
                 <div className="error-message">{errors.password}</div>
               )}
+              <div className="role-select">
+                <Select
+                  value={values.role}
+                  onChange={handleChange("role")}
+                  onBlur={handleBlur("role")}
+                  placeholder="Select Role"
+                  style={{ width: "100%" }}
+                >
+                  <Select.Option value="superadmin">superadmin</Select.Option>
+                  <Select.Option value="agent">agent</Select.Option>
+                  <Select.Option value="doctor">doctor</Select.Option>
+                </Select>
+                {touched.role && errors.role && (
+                  <div className="error-message">{errors.role}</div>
+                )}
+              </div>
 
               <p className="forgot-password">Forgot password?</p>
 

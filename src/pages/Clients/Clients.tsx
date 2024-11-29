@@ -1,149 +1,126 @@
 import React, { useState, useEffect } from "react";
-import { Input, Table, Button, Pagination, Modal } from "antd";
+import {
+  Input,
+  Table,
+  Button,
+  Pagination,
+  // Modal
+} from "antd";
 import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
-import { useNavigate } from "react-router-dom";
-import { useLocation } from "react-router-dom";
+// import { useNavigate } from "react-router-dom";
+// import { useLocation } from "react-router-dom";
 import "./Clients.css";
 
 const { Search } = Input;
 
 interface ClientData {
-  key: string;
+  // key: string;
   email: string;
+  name: string;
   password: string;
-  picture: string;
-  treatmentdetails: string;
-  status: string;
+  profile: null;
+  role: string;
+  status: null;
+  treatment_details: null;
 }
 
 const Clients: React.FC = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const [clients, setClients] = useState<ClientData[]>([
-    {
-      key: "1",
-      email: "maria@example.com",
-      password: "securepass",
-      picture: "path/to/maria.jpg",
-      treatmentdetails: "Aligner Phase 1",
-      status: "Ongoing",
-    },
-    {
-      key: "2",
-      email: "john@example.com",
-      password: "secure123",
-      picture: "path/to/john.jpg",
-      treatmentdetails: "Aligner Phase 2",
-      status: "Completed",
-    },
-    {
-      key: "3",
-      email: "sofia@example.com",
-      password: "mypassword",
-      picture: "path/to/sofia.jpg",
-      treatmentdetails: "Aligner Phase 3",
-      status: "Ongoing",
-    },
-    {
-      key: "4",
-      email: "maria@example.com",
-      password: "securepass",
-      picture: "path/to/maria.jpg",
-      treatmentdetails: "Aligner Phase 1",
-      status: "Ongoing",
-    },
-    {
-      key: "5",
-      email: "john@example.com",
-      password: "secure123",
-      picture: "path/to/john.jpg",
-      treatmentdetails: "Aligner Phase 2",
-      status: "Completed",
-    },
-    {
-      key: "6",
-      email: "sofia@example.com",
-      password: "mypassword",
-      picture: "path/to/sofia.jpg",
-      treatmentdetails: "Aligner Phase 3",
-      status: "Ongoing",
-    },
-  ]);
+  // const navigate = useNavigate();
+  // const location = useLocation();
+  const [clients, setClients] = useState<ClientData[]>([]);
 
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 5;
 
-  const confirmDelete = (key: string) => {
-    Modal.confirm({
-      title: "Are you sure you want to delete this client?",
-      content: "This action cannot be undone.",
-      okText: "Yes",
-      cancelText: "No",
-      onOk: () => handleDelete(key),
-    });
-  };
+  useEffect(() => {
+    const storedClients = localStorage.getItem("clients");
+    if (storedClients) {
+      setClients(JSON.parse(storedClients));
+    }
+  }, []);
+
+  // const confirmDelete = (key: string) => {
+  //   Modal.confirm({
+  //     title: "Are you sure you want to delete this client?",
+  //     content: "This action cannot be undone.",
+  //     okText: "Yes",
+  //     cancelText: "No",
+  //     onOk: () => handleDelete(key),
+  //   });
+  // };
 
   const onSearch = (value: string) => {
     console.log(value);
   };
 
-  const handleDelete = (key: string) => {
-    setClients(clients.filter((client) => client.key !== key));
-  };
+  // const handleDelete = (key: string) => {
+  //   setClients(clients.filter((client) => client.key !== key));
+  // };
 
-  const handleUpdate = (key: string) => {
-    const clientToEdit = clients.find((c) => c.key === key);
-    if (clientToEdit) {
-      navigate(`/clients/edit/${key}`, {
-        state: {
-          client: clientToEdit,
-        },
-      });
-    }
-  };
+  // const handleUpdate = (key: string) => {
+  //   const clientToEdit = clients.find((c) => c.key === key);
+  //   if (clientToEdit) {
+  //     navigate(`/clients/edit/${key}`, {
+  //       state: {
+  //         client: clientToEdit,
+  //       },
+  //     });
+  //   }
+  // };
 
-  useEffect(() => {
-    if (location.state?.updatedClient) {
-      const updatedClient = location.state.updatedClient;
-      setClients((prevClients) =>
-        prevClients.map((client) =>
-          client.key === updatedClient.key ? updatedClient : client
-        )
-      );
-    }
-  }, [location.state]);
+  // useEffect(() => {
+  //   if (location.state?.updatedClient) {
+  //     const updatedClient = location.state.updatedClient;
+  //     setClients((prevClients) =>
+  //       prevClients.map((client) =>
+  //         client.key === updatedClient.key ? updatedClient : client
+  //       )
+  //     );
+  //   }
+  // }, [location.state]);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
   };
 
   const columns = [
+    { title: "Name", dataIndex: "name", key: "name" },
     { title: "Email", dataIndex: "email", key: "email" },
-    { title: "Password", dataIndex: "password", key: "password" },
-    { title: "Picture", dataIndex: "picture", key: "picture" },
+    // { title: "Password", dataIndex: "password", key: "password" },
+    {
+      title: "Profile",
+      dataIndex: "profile",
+      key: "profile",
+      render: (profile: any) => profile ?? "---",
+    },
     {
       title: "Treatment Details",
-      dataIndex: "treatmentdetails",
-      key: "treatmentdetails",
+      dataIndex: "treatment_details",
+      key: "treatment_details",
+      render: (treatment_details: any) => treatment_details ?? "---",
     },
     {
       title: "Status",
       dataIndex: "status",
       key: "status",
+      render: (status: any) => status ?? "---",
     },
     {
       title: "Actions",
       key: "actions",
-      render: (_: any, record: ClientData) => (
+      render: (
+        _: any
+        // record: AgentData
+      ) => (
         <>
           <Button
             icon={<EditOutlined />}
-            onClick={() => handleUpdate(record.key)}
+            // onClick={() => handleUpdate(record.key)}
             style={{ marginRight: 8 }}
           />
           <Button
             icon={<DeleteOutlined />}
-            onClick={() => confirmDelete(record.key)}
+            // onClick={() => confirmDelete(record.key)}
           />
         </>
       ),
