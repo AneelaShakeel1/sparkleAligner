@@ -4,7 +4,7 @@ import { Form, Input, Button, Select } from "antd";
 
 const { Option } = Select;
 
-const EditClient: React.FC = () => {
+const EditPatient: React.FC = () => {
   const { state } = useLocation();
   const navigate = useNavigate();
   const [form] = Form.useForm();
@@ -89,4 +89,4 @@ const EditClient: React.FC = () => {
   );
 };
 
-export default EditClient;
+export default EditPatient;

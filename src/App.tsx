@@ -5,12 +5,12 @@ import SuperAdminPortal from "./pages/SuperAdminPortal/SuperAdminPortal";
 import DoctorPortal from "./pages/DoctorPortal/DoctorPortal";
 import AgentPortalSidebar from "./components/AgentPortalSidebar/AgentPortalSidebar";
 import AddUser from "./pages/AddUser/AddUser";
+import Patients from "./pages/Patients/Patients";
 import Login from "./pages/Login/Login";
 import Agents from "./pages/Agents/Agents";
 import Doctors from "./pages/Doctors/Doctors";
-import Clients from "./pages/Clients/Clients";
 import EditAgent from "./components/EditAgent/EditAgent";
-import EditClient from "./components/EditClient/EditClient";
+import EditPatient from "./components/EditPatient/EditPatient";
 import EditDoctor from "./components/EditDoctor/EditDoctor";
 import UploadTeethImages from "./pages/UploadTeethImages/UploadTeethImages";
 import ManageCustomer from "./pages/ManageCustomer/ManageCustomer";
@@ -46,10 +46,10 @@ const App: React.FC = () => {
         <Route path="/super-admin-dashboard" element={<SuperAdminPortal />} />
         <Route path="/agents" element={<Agents />} />
         <Route path="/doctors" element={<Doctors />} />
-        <Route path="/clients" element={<Clients />} />
+        <Route path="/patients" element={<Patients />} />
         <Route path="/add-user" element={<AddUser />} />
         <Route path="/agents/edit/:key" element={<EditAgent />} />
-        <Route path="/clients/edit/:key" element={<EditClient />} />
+        <Route path="/patients/edit/:key" element={<EditPatient />} />
         <Route path="/doctors/edit/:key" element={<EditDoctor />} />
         {/* Doctor Portal Route */}
         <Route path="/doctor-portal" element={<DoctorPortal />} />

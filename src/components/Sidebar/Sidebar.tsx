@@ -23,7 +23,7 @@ const Sidebar: React.FC = () => {
             <Link to="/doctors"> Manage Doctors</Link>
           </li>
           <li>
-            <Link to="/clients">Manage Clients</Link>
+            <Link to="/patients">Manage Patients</Link>
           </li>
           <li>
             <Link to="/add-user">Add User</Link>

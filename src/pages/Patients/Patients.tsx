@@ -9,7 +9,7 @@ import {
 import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
 // import { useNavigate } from "react-router-dom";
 // import { useLocation } from "react-router-dom";
-import "./Clients.css";
+import "./Patients.css";
 
 const { Search } = Input;
 
@@ -24,7 +24,7 @@ interface ClientData {
   treatment_details: null;
 }
 
-const Clients: React.FC = () => {
+const Patients: React.FC = () => {
   // const navigate = useNavigate();
   // const location = useLocation();
   const [clients, setClients] = useState<ClientData[]>([]);
@@ -33,7 +33,7 @@ const Clients: React.FC = () => {
   const pageSize = 5;
 
   useEffect(() => {
-    const storedClients = localStorage.getItem("clients");
+    const storedClients = localStorage.getItem("patients");
     if (storedClients) {
       setClients(JSON.parse(storedClients));
     }
@@ -154,4 +154,4 @@ const Clients: React.FC = () => {
   );
 };
 
-export default Clients;
+export default Patients;

@@ -47,7 +47,7 @@ const SignUp: React.FC = () => {
 
       let users = JSON.parse(localStorage.getItem("users") || "[]");
       let agents = JSON.parse(localStorage.getItem("agents") || "[]");
-      let clients = JSON.parse(localStorage.getItem("clients") || "[]");
+      let patients = JSON.parse(localStorage.getItem("patients") || "[]");
       let doctors = JSON.parse(localStorage.getItem("doctors") || "[]");
 
       const {
@@ -71,15 +71,15 @@ const SignUp: React.FC = () => {
       };
 
       switch (role) {
-        case "agent":
+        case "Agent":
           agents = [...agents, newUser];
           localStorage.setItem("agents", JSON.stringify(agents));
           break;
-        case "client":
-          clients = [...clients, newUser];
-          localStorage.setItem("clients", JSON.stringify(clients));
+        case "Patient":
+          patients = [...patients, newUser];
+          localStorage.setItem("patients", JSON.stringify(patients));
           break;
-        case "doctor":
+        case "Doctor":
           doctors = [...doctors, newUser];
           localStorage.setItem("doctors", JSON.stringify(doctors));
           break;
@@ -92,13 +92,13 @@ const SignUp: React.FC = () => {
 
       setTimeout(() => {
         switch (role) {
-          case "agent":
+          case "Agent":
             navigate("/agents");
             break;
-          case "client":
-            navigate("/clients");
+          case "Patient":
+            navigate("/patients");
             break;
-          case "doctor":
+          case "Doctor":
             navigate("/doctors");
             break;
           default:
@@ -198,9 +198,9 @@ const SignUp: React.FC = () => {
                   placeholder="Select Role"
                   style={{ width: "100%" }}
                 >
-                  <Select.Option value="client">client</Select.Option>
-                  <Select.Option value="agent">agent</Select.Option>
-                  <Select.Option value="doctor">doctor</Select.Option>
+                  <Select.Option value="Patient">Patient</Select.Option>
+                  <Select.Option value="Agent">Agent</Select.Option>
+                  <Select.Option value="Doctor">Doctor</Select.Option>
                 </Select>
                 {touched.role && errors.role && (
                   <div className="error-message">{errors.role}</div>
