@@ -28,22 +28,26 @@ const Login: React.FC = () => {
       email: values.email,
       password: values.password,
     };
-    const response = await axios.post(
-      "http://localhost:5000/api/auth/admin",
-      payload
-    );
+    let url;
+    if (values.role === "superadmin") {
+      url = "http://localhost:5000/api/auth/admin";
+    } else {
+      url = "http://localhost:5000/api/auth/login";
+    }
+    const response = await axios.post(`${url}}`, payload);
 
     if (response) {
       localStorage.setItem("token", response.data.token);
+      // localStorage.setItem("userDetail", JSON.stringify(response.data));
       message.success(response.data.message);
       setTimeout(() => {
         const role = values.role;
-        if (role) {
-          role === "superadmin"
-            ? navigate("/agents")
-            : role === "agent"
-            ? navigate("/agent-portal")
-            : navigate("/doctor-portal");
+        if (role === "superadmin" || role === "agent") {
+          navigate("/");
+        } else if (role === "doctor") {
+          navigate("/doctor-dashboard");
+        } else if (role === "manufacturer") {
+          navigate("/doctor-manufacturer");
         }
       }, 1000);
     }

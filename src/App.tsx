@@ -18,6 +18,8 @@ import UploadSTLFiles from "./pages/UploadSTLFiles/UploadSTLFiles";
 import UploadTreatmentPreview from "./pages/UploadTreatmentPreview/UploadTreatmentPreview";
 import UploadDocuments from "./pages/UploadDocuments/UploadDocuments";
 import EditCustomer from "./components/EditCustomer/EditCustomer";
+import Dashboard from "./pages/Dashboard/Dashboard";
+import { ToggleProvider } from "./context/provider";
 import "./App.css";
 
 const App: React.FC = () => {
@@ -40,28 +42,38 @@ const App: React.FC = () => {
   return (
     <>
       {!isNoSidebarPage && <Sidebar />}
-      <Routes>
-        <Route path="/" element={<Login />} />
-        {/* Super Admin Routes */}
-        <Route path="/super-admin-dashboard" element={<SuperAdminPortal />} />
-        <Route path="/agents" element={<Agents />} />
-        <Route path="/doctors" element={<Doctors />} />
-        <Route path="/patients" element={<Patients />} />
-        <Route path="/add-user" element={<AddUser />} />
-        <Route path="/agents/edit/:key" element={<EditAgent />} />
-        <Route path="/patients/edit/:key" element={<EditPatient />} />
-        <Route path="/doctors/edit/:key" element={<EditDoctor />} />
-        {/* Doctor Portal Route */}
-        <Route path="/doctor-portal" element={<DoctorPortal />} />
-        {/* Agent Portal Route - includes sub-routes for agent features */}
-        <Route path="/agent-portal" element={<AgentPortalSidebar />} />
-        <Route path="/teeth-images" element={<UploadTeethImages />} />
-        <Route path="/customers" element={<ManageCustomer />} />
-        <Route path="/stl-files" element={<UploadSTLFiles />} />
-        <Route path="/documents" element={<UploadDocuments />} />
-        <Route path="/treatment-preview" element={<UploadTreatmentPreview />} />
-        <Route path="/customers/edit/:key" element={<EditCustomer />} />
-      </Routes>
+      <ToggleProvider>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          {/* dashboard super admin & agent */}
+          <Route path="/" element={<Dashboard />} />
+          {/* doctor  */}
+          {/* <Route path="/doctor" element={<DashboardDoctor />} /> */}
+          
+          {/* Super Admin Routes */}
+          <Route path="/super-admin-dashboard" element={<SuperAdminPortal />} />
+          <Route path="/agents" element={<Agents />} />
+          <Route path="/doctors" element={<Doctors />} />
+          <Route path="/patients" element={<Patients />} />
+          <Route path="/add-user" element={<AddUser />} />
+          <Route path="/agents/edit/:key" element={<EditAgent />} />
+          <Route path="/patients/edit/:key" element={<EditPatient />} />
+          <Route path="/doctors/edit/:key" element={<EditDoctor />} />
+          {/* Doctor Portal Route */}
+          <Route path="/doctor-portal" element={<DoctorPortal />} />
+          {/* Agent Portal Route - includes sub-routes for agent features */}
+          <Route path="/agent-portal" element={<AgentPortalSidebar />} />
+          <Route path="/teeth-images" element={<UploadTeethImages />} />
+          <Route path="/customers" element={<ManageCustomer />} />
+          <Route path="/stl-files" element={<UploadSTLFiles />} />
+          <Route path="/documents" element={<UploadDocuments />} />
+          <Route
+            path="/treatment-preview"
+            element={<UploadTreatmentPreview />}
+          />
+          <Route path="/customers/edit/:key" element={<EditCustomer />} />
+        </Routes>
+      </ToggleProvider>
     </>
   );
 };
