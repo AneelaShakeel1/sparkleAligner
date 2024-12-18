@@ -819,3 +819,57 @@ body {
   > td {
   background-color: #fff;
 }
+.scrollbar-container {
+  ul {
+    background: transparent;
+    li {
+      .ant-menu-submenu-arrow,
+      a,
+      span {
+        color: #fff;
+      }
+      &:hover {
+        ul {
+          li {
+            svg {
+              circle {
+                fill: black;
+              }
+            }
+          }
+        }
+        background: #fff !important;
+        svg {
+          path {
+            fill: black;
+          }
+        }
+        .ant-menu-submenu-arrow,
+        a,
+        span {
+          color: #000;
+        }
+      }
+      &:first-child {
+        &:hover {
+          svg {
+            path {
+              fill: transparent;
+              stroke: black;
+            }
+          }
+        }
+      }
+      &:nth-child(5) {
+        &:hover {
+          svg {
+            path {
+              fill: transparent;
+              stroke: black;
+            }
+          }
+        }
+      }
+    }
+  }
+}
