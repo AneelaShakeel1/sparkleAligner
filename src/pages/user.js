@@ -80,6 +80,12 @@ export default function Users() {
                 >
                   Patients
                 </Radio>
+                <Radio
+                  value="Manufacturer"
+                  className={selectedRole === "Manufacturer" ? "checked-radio" : ""}
+                >
+                  Manufacturer
+                </Radio>
               </Radio.Group>
               <style>
                 {`.checked-radio .ant-radio-inner { border-color:white !important; background-color: #0b3c95 !important}`}

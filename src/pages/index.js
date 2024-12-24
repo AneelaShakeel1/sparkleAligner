@@ -3,9 +3,11 @@ import Home from "../pages/dashboard.js";
 import User from "./user.js";
 import DoctorDashboard from "./doctordashboard.js";
 import ManufacturerDashboard from './manufacturerdashboard.js'
+import ManufacturerResponse from "./manufacturerresponse.js";
 import chat from "./chat.js";
 import Doctor from "./doctor.js";
 import DoctorResponse from "./doctorresponse.js";
+import Manufacturer from "./manufacturer.js";
 import Analytics from "./analytics.js";
 
 const routes = [
@@ -34,8 +36,18 @@ const routes = [
     requiredPermission: "manage_services",
   },
   {
+    path: "/manufacturer-response",
+    pages: ManufacturerResponse,
+    requiredPermission: "manage_services",
+  },
+  {
     path: "/doctor",
     pages: Doctor,
+    requiredPermission: "manage_services",
+  },
+  {
+    path: "/manufacturer",
+    pages: Manufacturer,
     requiredPermission: "manage_services",
   },
   {

@@ -153,6 +153,7 @@ const AddUser = () => {
                   )}
                   <Select.Option value="Patient">Patient</Select.Option>
                   <Select.Option value="Doctor">Doctor</Select.Option>
+                  <Select.Option value="Manufacturer">Manufacturer</Select.Option>
                 </Select>
               </Form.Item>
             </Form.Item>

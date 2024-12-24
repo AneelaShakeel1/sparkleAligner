@@ -103,11 +103,42 @@ const MENU_CONFIG = {
       ],
     },
     {
+      label: "Manufacturer Management",
+      key: "manufacturer-management",
+      icon: Svgs.vendormanagement,
+      className: SIDEBAR_CLASS,
+      children: [
+        {
+          label: "Manufacturer",
+          key: "Manufacturer",
+          link: "/manufacturer",
+          className: SIDEBAR_CLASS,
+          icon: Svgs.ellipse,
+        },,
+        {
+          label: "Manufacturer Response",
+          key: "Manufacturer Response",
+          link: "/manufacturer-response",
+          className: SIDEBAR_CLASS,
+          icon: Svgs.ellipse,
+        },
+      ],
+    },
+    {
       label: "Chat Support",
       key: "chat-support",
       icon: Svgs.chat,
       link: "/chat",
       className: SIDEBAR_CLASS,
+    },
+  ],
+  Manufacturer: [
+    {
+      label: "Manufacturer Dashboard",
+      key: "manufacturer-dashboard",
+      icon: Svgs.vendormanagement,
+      className: SIDEBAR_CLASS,
+      link: "/manufacturer-dashboard",
     },
   ],
 };

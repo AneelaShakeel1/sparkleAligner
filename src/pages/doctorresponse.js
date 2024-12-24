@@ -17,9 +17,10 @@ const DoctorResponse = () => {
   if (!agentId || agentId === null || agentId === "undefined") return;
 
   const filteredTreatmentPreviews = treatmentpreviews.filter(
-    (preview) => preview.agentId?._id === agentId
+    (preview) =>
+      preview.agentId?._id === agentId && preview.doctorId?._id
   );
-
+  
   const columns = [
     {
       title: "Patient",

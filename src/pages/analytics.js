@@ -22,11 +22,11 @@ export default function Analytics() {
     let filtered;
     if (role === "Agent") {
       filtered = treatmentpreviews.filter(
-        (treatmentpreview) => treatmentpreview.agentId._id === ID
+        (treatmentpreview) => treatmentpreview?.agentId?._id === ID
       );
     } else if (role === "Doctor") {
       filtered = treatmentpreviews.filter(
-        (treatmentpreview) => treatmentpreview.doctorId._id === ID
+        (treatmentpreview) => treatmentpreview?.doctorId?._id === ID
       );
     }
     setTreatmentPreviewsByID(filtered);
