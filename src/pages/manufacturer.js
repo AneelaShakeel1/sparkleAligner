@@ -5,6 +5,7 @@ import { fetchAllUserAsync } from "../store/user/userSlice";
 import { addTreatmentPreview } from "../store/treatmentpreview/treatmentpreviewSlice";
 import { Select, Button, Form, Upload, message } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
+import axios from "axios";
 
 export default function Manufacturer() {
   const [selectedManufacturer, setSelectedManufacturer] = useState(null);
@@ -25,27 +26,69 @@ export default function Manufacturer() {
     dispatch(fetchAllUserAsync());
   }, [dispatch]);
 
-  const manufacturers = getAllUsers.filter((user) => user.role === "Manufacturer");
+  const manufacturers = getAllUsers.filter(
+    (user) => user.role === "Manufacturer"
+  );
   const patients = getAllUsers.filter((user) => user.role === "Patient");
 
-  const handleFileChange = (info) => {
-    setFile(info.fileList);
-    // cloudinary
-    // response = url
-    // setFileURL(url)
+  const handleFileChange = async (info) => {
+    debugger;
+    // Show a loading message while uploading
+    message.loading({ content: "Uploading file...", key: "upload" });
+    const file = info.fileList[0].originFileObj;
+
+    if (!file) {
+      throw new Error("No file selected or file is invalid.");
+    }
+    try {
+      // Create FormData and append the file
+      const data = new FormData();
+      data.append("file", file);
+      data.append("upload_preset", "aneela"); // Cloudinary upload preset
+      // data.append('api_key', '158646382266981');
+
+      // Upload to Cloudinary
+      const uploadRes = await axios.post(
+        "https://api.cloudinary.com/v1_1/aneelacloud/image/upload",
+        data
+      );
+      debugger;
+      const { url } = uploadRes.data;
+
+      // Update state with uploaded file details
+      setFile((prevFiles) => [
+        ...prevFiles,
+        { name: file.name, url, uploadedAt: new Date().toISOString() },
+      ]);
+
+      message.success({
+        content: "File uploaded successfully!",
+        key: "upload",
+      });
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      message.error({ content: "Failed to upload file.", key: "upload" });
+    }
   };
 
   const handleSend = async () => {
-    const agentId = localStorage.getItem("userId");
-
     if (!selectedManufacturer || !selectedPatient || file.length === 0) {
-      message.error("Please select both manufacturer, patient, and upload a file.");
+      message.error(
+        "Please select both manufacturer, patient, and upload a file."
+      );
       return;
     }
 
-    if (!agentId || agentId === null || agentId === "undefined") return;
+    const agentId = localStorage.getItem("userId");
 
-    const manufacturer = manufacturers.find((manu) => manu.name === selectedManufacturer);
+    if (!agentId || agentId === null || agentId === "undefined") {
+      message.error("Agent ID not found. Please log in again.");
+      return;
+    }
+
+    const manufacturer = manufacturers.find(
+      (manu) => manu.name === selectedManufacturer
+    );
     const patient = patients.find((pat) => pat.name === selectedPatient);
 
     if (!manufacturer || !patient) {
@@ -53,11 +96,12 @@ export default function Manufacturer() {
       return;
     }
 
+    // Prepare payload with file details
     const uploadedFiles = file.map((fileItem) => ({
       fileName: fileItem.name,
-      fileUrl: "https://picsum.photos/200/300",
+      fileUrl: fileItem.url,
       uploadedBy: agentId,
-      uploadedAt: new Date().toISOString(),
+      uploadedAt: fileItem.uploadedAt,
     }));
 
     const payload = {
@@ -71,7 +115,6 @@ export default function Manufacturer() {
 
     try {
       const resultAction = await dispatch(addTreatmentPreview(payload));
-
       const response = resultAction.payload;
 
       if (resultAction.error) {
