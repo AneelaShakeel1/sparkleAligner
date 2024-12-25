@@ -114,7 +114,8 @@ const MENU_CONFIG = {
           link: "/manufacturer",
           className: SIDEBAR_CLASS,
           icon: Svgs.ellipse,
-        },,
+        },
+        ,
         {
           label: "Manufacturer Response",
           key: "Manufacturer Response",
@@ -139,6 +140,29 @@ const MENU_CONFIG = {
       icon: Svgs.vendormanagement,
       className: SIDEBAR_CLASS,
       link: "/manufacturer-dashboard",
+    },
+    {
+      label: "Manufacturer Management",
+      key: "manufacturer-management",
+      icon: Svgs.vendormanagement,
+      className: SIDEBAR_CLASS,
+      children: [
+        {
+          label: "Manufacturer",
+          key: "Manufacturer",
+          link: "/manufacturer",
+          className: SIDEBAR_CLASS,
+          icon: Svgs.ellipse,
+        },
+        ,
+        {
+          label: "Manufacturer Response",
+          key: "Manufacturer Response",
+          link: "/manufacturer-response",
+          className: SIDEBAR_CLASS,
+          icon: Svgs.ellipse,
+        },
+      ],
     },
   ],
 };

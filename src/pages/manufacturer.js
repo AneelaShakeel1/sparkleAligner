@@ -5,7 +5,6 @@ import { fetchAllUserAsync } from "../store/user/userSlice";
 import { addTreatmentPreview } from "../store/treatmentpreview/treatmentpreviewSlice";
 import { Select, Button, Form, Upload, message } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
-import axios from "axios";
 
 export default function Manufacturer() {
   const [selectedManufacturer, setSelectedManufacturer] = useState(null);
@@ -32,33 +31,44 @@ export default function Manufacturer() {
   const patients = getAllUsers.filter((user) => user.role === "Patient");
 
   const handleFileChange = async (info) => {
-    debugger;
-    // Show a loading message while uploading
-    message.loading({ content: "Uploading file...", key: "upload" });
+    if (!info.fileList || info.fileList.length === 0) {
+      message.error("No file selected.");
+      return;
+    }
+
     const file = info.fileList[0].originFileObj;
 
-    if (!file) {
-      throw new Error("No file selected or file is invalid.");
-    }
     try {
-      // Create FormData and append the file
-      const data = new FormData();
-      data.append("file", file);
-      data.append("upload_preset", "aneela"); // Cloudinary upload preset
-      // data.append('api_key', '158646382266981');
+      message.loading({ content: "Uploading file...", key: "upload" });
 
-      // Upload to Cloudinary
-      const uploadRes = await axios.post(
-        "https://api.cloudinary.com/v1_1/aneelacloud/image/upload",
-        data
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("upload_preset", "aneela");
+      formData.append("cloud_name", "aneelacloud"); // Add cloud_name
+
+      const response = await fetch(
+        "https://api.cloudinary.com/v1_1/aneelacloud/auto/upload", // Correct URL for Cloudinary upload
+        {
+          method: "POST",
+          body: formData, // Send the FormData object as the request body
+        }
       );
-      debugger;
-      const { url } = uploadRes.data;
 
-      // Update state with uploaded file details
+      if (!response.ok) {
+        throw new Error(`Failed to upload: ${response.statusText}`);
+      }
+
+      // Get the response data from Cloudinary
+      const data = await response.json();
+      // Get the uploaded file URL from Cloudinary response
+      const fileUrl = data.secure_url;
       setFile((prevFiles) => [
         ...prevFiles,
-        { name: file.name, url, uploadedAt: new Date().toISOString() },
+        {
+          name: file.name,
+          url: fileUrl,
+          uploadedAt: new Date().toISOString(),
+        },
       ]);
 
       message.success({
@@ -66,8 +76,17 @@ export default function Manufacturer() {
         key: "upload",
       });
     } catch (error) {
-      console.error("Error uploading file:", error);
-      message.error({ content: "Failed to upload file.", key: "upload" });
+      console.error("Full error details:", {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        headers: error.response?.headers,
+      });
+
+      message.error({
+        content: `Failed to upload file: ${error.message}`,
+        key: "upload",
+      });
     }
   };
 
@@ -146,7 +165,7 @@ export default function Manufacturer() {
               onChange={handleFileChange}
               beforeUpload={() => false}
               fileList={file}
-              accept=".pdf, .png, .jpg, .jpeg, .stl"
+              accept=".pdf, .png, .jpg, .jpeg, .doc, .docx, .mp4, .avi, .mov , .stl"
             >
               <Button icon={<UploadOutlined />}>Click to Upload</Button>
             </Upload>
