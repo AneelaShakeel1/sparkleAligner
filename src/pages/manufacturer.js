@@ -36,7 +36,7 @@ export default function Manufacturer() {
       return;
     }
 
-    const file = info.fileList[0].originFileObj;
+    const file = info.fileList[info.fileList.length - 1].originFileObj;
 
     try {
       message.loading({ content: "Uploading file...", key: "upload" });
