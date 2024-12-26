@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Table, Button, Space, Spin, Modal, message } from "antd";
+import { Table, Button, Space, Spin, Modal, message, Upload } from "antd";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchTreatmentPreviewByIdAsync } from "../store/treatmentpreview/treatmentpreviewSlice";
 import { updateTreatmentPreview } from "../service/treatmentpreviewService";
@@ -15,7 +15,7 @@ const ManufacturerDashboard = () => {
   const [loading, setLoading] = useState(false);
   const [selectedTreatmentID, setSelectedTreatmentID] = useState(null);
   const [selectedAgentId, setSelectedAgentId] = useState(null);
-  const [file, setFile] = useState(null);
+  const [file, setFile] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
 
   useEffect(() => {
@@ -38,30 +38,86 @@ const ManufacturerDashboard = () => {
     }
   };
 
-  const handleFileUpload = (e) => {
+  const handleFileUpload = async (e) => {
     const uploadedFile = e.target.files[0];
-    if (uploadedFile) {
-      if (uploadedFile.type !== "video/mp4") {
-        message.error("Only MP4 files are allowed.");
-        return;
+    debugger;
+    console.log(uploadedFile, "=============gggg");
+    // const file = info.fileList[info.fileList.length - 1].originFileObj;
+
+    try {
+      message.loading({ content: "Uploading file...", key: "upload" });
+
+      const formData = new FormData();
+      formData.append("file", uploadedFile);
+      formData.append("upload_preset", "aneela");
+      formData.append("cloud_name", "aneelacloud"); // Add cloud_name
+
+      const response = await fetch(
+        "https://api.cloudinary.com/v1_1/aneelacloud/auto/upload", // Correct URL for Cloudinary upload
+        {
+          method: "POST",
+          body: formData, // Send the FormData object as the request body
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to upload: ${response.statusText}`);
       }
-      setFile(uploadedFile);
+
+      // Get the response data from Cloudinary
+      const data = await response.json();
+      console.log(data, "===================");
+      // Get the uploaded file URL from Cloudinary response
+      const fileUrl = data.secure_url;
+      setFile((prevFiles) => [
+        ...prevFiles,
+        {
+          name: uploadedFile.name,
+          url: fileUrl,
+          uploadedAt: new Date().toISOString(),
+        },
+      ]);
+
+      message.success({
+        content: "File uploaded successfully!",
+        key: "upload",
+      });
+    } catch (error) {
+      console.error("Full error details:", {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        headers: error.response?.headers,
+      });
+
+      message.error({
+        content: `Failed to upload file: ${error.message}`,
+        key: "upload",
+      });
     }
+    // if (uploadedFile) {
+    //   if (uploadedFile.type !== "video/mp4") {
+    //     message.error("Only MP4 files are allowed.");
+    //     return;
+    //   }
+    //   // setFile(uploadedFile);
+    // }
   };
+  // console.log(file, "======file");
   const handleUploadTP = async () => {
     if (!file) {
       message.error("Please select a file to upload.");
       return;
     }
+
     if (selectedTreatmentID && selectedAgentId) {
-      const uploadedFiles = [
-        {
-          fileName: file.name,
-          fileUrl: "https://picsum.photos/200/300",
-          uploadedBy: selectedAgentId,
-          uploadedAt: new Date().toISOString(),
-        },
-      ];
+      const uploadedFiles = file.map((fileItem) => ({
+        fileName: fileItem.name,
+        fileUrl: fileItem.url,
+        uploadedBy: selectedAgentId,
+        uploadedAt: fileItem.uploadedAt,
+      }));
+
       setLoading(true);
       try {
         const resultAction = await updateTreatmentPreview({
@@ -77,7 +133,7 @@ const ManufacturerDashboard = () => {
         toast.error("Failed to add TP:", error.message || error);
       } finally {
         setLoading(false);
-        setFile(null);
+        setFile([]);
         setIsModalVisible(false);
       }
     }
@@ -163,25 +219,14 @@ const ManufacturerDashboard = () => {
         onCancel={() => setIsModalVisible(false)}
         footer={null}
       >
-        <input type="file" onChange={handleFileUpload} accept="video/mp4" />
-        {file && (
-          <div
-            style={{
-              marginTop: "10px",
-              justifyContent: "end",
-              display: "flex",
-            }}
-          >
-            <Button
-              type="primary"
-              style={{ backgroundColor: "#0b3c95", color: "white" }}
-              loading={loading}
-              onClick={handleUploadTP}
-            >
-              Upload
-            </Button>
-          </div>
-        )}
+        <Upload
+          onChange={handleFileUpload}
+          beforeUpload={() => false}
+          fileList={file}
+          accept=".mp4"
+        >
+          <Button onClick={handleUploadTP}>Upload</Button>
+        </Upload>
       </Modal>
     </div>
   );

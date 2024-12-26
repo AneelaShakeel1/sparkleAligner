@@ -14,7 +14,7 @@ const routes = [
   {
     path: "/",
     pages: () => <Home />,
-    isPublic: true,
+    isPublic: false,
   },
   {
     path: "/login",

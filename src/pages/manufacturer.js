@@ -160,7 +160,7 @@ export default function Manufacturer() {
           onFinish={handleSend}
           className="space-y-4 w-full mx-6 my-6"
         >
-          <Form.Item label="Upload Treatment Preview" name="file">
+          <Form.Item label="Upload Patient Media To Manufacturer" name="file">
             <Upload
               onChange={handleFileChange}
               beforeUpload={() => false}

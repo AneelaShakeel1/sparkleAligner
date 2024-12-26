@@ -13,19 +13,19 @@ import {
 import EditUser from "./edit-user";
 import DeleteUser from "./delete-user";
 import { Svgs } from "../Svgs/svg-icons";
+import JSZip from "jszip";
+import { saveAs } from "file-saver";
 const { Text } = Typography;
 
-function UserCategory({ data }) {
+function UserCategory({ data, role }) {
   const [selectedEditUser, setSelectedEditUser] = useState(null);
   const [selectedViewUser, setSelectedViewUser] = useState(null);
-  const [originalData, setOriginalData] = useState(data);
   const [filteredData, setFilteredData] = useState(data);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(6);
 
   useEffect(() => {
     setFilteredData(data);
-    setOriginalData(data);
   }, [data]);
 
   const handleEditClick = (user) => {
@@ -46,10 +46,27 @@ function UserCategory({ data }) {
     currentPage * pageSize
   );
 
+  const handleGetMediaClick = async (user) => {
+    try {
+      const zip = new JSZip();
+      const mediaPromises = user.media.map(async (media, index) => {
+        const response = await fetch(media.fileUrl);
+        const blob = await response.blob();
+        const fileExtension =
+          media.fileUrl.split(".").pop().split("?")[0] || "unknown";
+        zip.file(`media_${index + 1}.${fileExtension}`, blob);
+      });
+      await Promise.all(mediaPromises);
+      const content = await zip.generateAsync({ type: "blob" });
+      saveAs(content, `${user.name}_media.zip`);
+    } catch (error) {
+      console.error("Error fetching media:", error);
+    }
+  };
+
   const columns = [
     { title: "Name", dataIndex: "name", key: "name" },
     { title: "Email", dataIndex: "email", key: "email" },
-    // { title: "Password", dataIndex: "password", key: "password" },
     {
       title: "Profile",
       dataIndex: "profile",
@@ -80,11 +97,23 @@ function UserCategory({ data }) {
       title: "Actions",
       key: "actions",
       render: (user) => (
-        <Row className="gap-5">
+        <Row className="gap-5 flex items-center">
           <div onClick={() => handleEditClick(user)}>
             {selectedEditUser ? <EditUser data={user} /> : Svgs.editg}
           </div>
           <DeleteUser data={user} goBack={() => setSelectedEditUser(null)} />
+          {console.log(user)}
+          {role === "Patient" && user.media.length > 0 && (
+            <Button
+              onClick={() => handleGetMediaClick(user)}
+              style={{
+                backgroundColor: "#0b3c95",
+                color: "white",
+              }}
+            >
+              Get Media
+            </Button>
+          )}
         </Row>
       ),
     },

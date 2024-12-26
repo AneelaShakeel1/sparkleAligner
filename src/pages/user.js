@@ -10,7 +10,6 @@ import CreateUser from "../components/Users/add-user";
 import { Radio } from "antd";
 
 export default function Users() {
-
   const getAllUsers = useSelector((state) =>
     state.user ? state.user.users : []
   );
@@ -82,7 +81,9 @@ export default function Users() {
                 </Radio>
                 <Radio
                   value="Manufacturer"
-                  className={selectedRole === "Manufacturer" ? "checked-radio" : ""}
+                  className={
+                    selectedRole === "Manufacturer" ? "checked-radio" : ""
+                  }
                 >
                   Manufacturer
                 </Radio>
@@ -93,9 +94,7 @@ export default function Users() {
               <CreateUser />
             </div>
             <div className="mt-6">
-                <UserCategory
-                  data={filteredUsers || []}
-                />
+              <UserCategory data={filteredUsers || []} role={selectedRole}/>
             </div>
           </Content>
         </PerfectScrollbar>
