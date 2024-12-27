@@ -1,78 +1,80 @@
 import React, { useState, useEffect } from "react";
 import { Table, Button, Space, Spin, Modal, message, Upload } from "antd";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchTreatmentPreviewByIdAsync } from "../store/treatmentpreview/treatmentpreviewSlice";
-import { updateTreatmentPreview } from "../service/treatmentpreviewService";
+import { fetchAllManufacturerAsync } from "../store/manufacturer/manufacturerSlice";
+import { addTreatmentPreview } from "../store/treatmentpreview/treatmentpreviewSlice";
+import { UploadOutlined } from "@ant-design/icons";
+import JSZip from "jszip";
+import { saveAs } from "file-saver";
 import { SideBar } from "../components/SideBar";
 import { toast } from "react-toastify";
-import { Svgs } from "../components/Svgs/svg-icons";
 
 const ManufacturerDashboard = () => {
   const dispatch = useDispatch();
-  const { treatmentpreviewsbyid } = useSelector(
-    (state) => state.treatmentpreview
-  );
+  const { manufacturers } = useSelector((state) => state.manufacturer);
   const [loading, setLoading] = useState(false);
-  const [selectedTreatmentID, setSelectedTreatmentID] = useState(null);
-  const [selectedAgentId, setSelectedAgentId] = useState(null);
+  const [manufacturerTreatmentPreviewID, setManufacturerTreatmentPreviewID] =
+    useState(null);
+  const [agentID, setAgentID] = useState(null);
+  const [patientID, setPatientID] = useState(null);
+  const [specialComments, setSpecialComments] = useState("");
+  const [status, setStatus] = useState("Pending");
   const [file, setFile] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
 
   useEffect(() => {
-    const manufacturerId = localStorage.getItem("userId");
-    if (manufacturerId) {
-      dispatch(fetchTreatmentPreviewByIdAsync(manufacturerId));
-    }
+    dispatch(fetchAllManufacturerAsync());
   }, [dispatch]);
 
-  const handleDownloadFiles = async (files) => {
-    for (const file of files) {
-      const response = await fetch(file.fileUrl);
-      const blob = await response.blob();
-      const link = document.createElement("a");
-      link.href = window.URL.createObjectURL(blob);
-      link.setAttribute("download", file.fileName || "file");
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+  const handleGetMediaClick = async (user) => {
+    try {
+      const zip = new JSZip();
+      const uploadedFilesPromises = user.uploadedFiles.map(async (file) => {
+        const response = await fetch(file.fileUrl);
+        const blob = await response.blob();
+        zip.file(file.fileName, blob);
+      });
+      await Promise.all(uploadedFilesPromises);
+      const content = await zip.generateAsync({ type: "blob" });
+      saveAs(content, `${user.linkedPatientId.name}_media.zip`);
+    } catch (error) {
+      console.error("Error fetching patient media:", error);
     }
   };
 
-  const handleFileUpload = async (e) => {
-    const uploadedFile = e.target.files[0];
-    debugger;
-    console.log(uploadedFile, "=============gggg");
-    // const file = info.fileList[info.fileList.length - 1].originFileObj;
+  const handleFileUpload = async (info) => {
+    if (!info.fileList || info.fileList.length === 0) {
+      message.error("No file selected.");
+      return;
+    }
 
+    const file = info.fileList[info.fileList.length - 1].originFileObj;
     try {
       message.loading({ content: "Uploading file...", key: "upload" });
 
       const formData = new FormData();
-      formData.append("file", uploadedFile);
+      formData.append("file", file);
       formData.append("upload_preset", "aneela");
-      formData.append("cloud_name", "aneelacloud"); // Add cloud_name
+      formData.append("cloud_name", "aneelacloud");
 
       const response = await fetch(
-        "https://api.cloudinary.com/v1_1/aneelacloud/auto/upload", // Correct URL for Cloudinary upload
+        "https://api.cloudinary.com/v1_1/aneelacloud/auto/upload",
         {
           method: "POST",
-          body: formData, // Send the FormData object as the request body
+          body: formData,
         }
       );
 
       if (!response.ok) {
         throw new Error(`Failed to upload: ${response.statusText}`);
       }
-
-      // Get the response data from Cloudinary
       const data = await response.json();
-      console.log(data, "===================");
-      // Get the uploaded file URL from Cloudinary response
+
       const fileUrl = data.secure_url;
       setFile((prevFiles) => [
         ...prevFiles,
         {
-          name: uploadedFile.name,
+          name: file.name,
           url: fileUrl,
           uploadedAt: new Date().toISOString(),
         },
@@ -95,56 +97,73 @@ const ManufacturerDashboard = () => {
         key: "upload",
       });
     }
-    // if (uploadedFile) {
-    //   if (uploadedFile.type !== "video/mp4") {
-    //     message.error("Only MP4 files are allowed.");
-    //     return;
-    //   }
-    //   // setFile(uploadedFile);
-    // }
   };
-  // console.log(file, "======file");
+
   const handleUploadTP = async () => {
     if (!file) {
       message.error("Please select a file to upload.");
       return;
     }
 
-    if (selectedTreatmentID && selectedAgentId) {
-      const uploadedFiles = file.map((fileItem) => ({
-        fileName: fileItem.name,
-        fileUrl: fileItem.url,
-        uploadedBy: selectedAgentId,
-        uploadedAt: fileItem.uploadedAt,
-      }));
+    const manufacturerID = localStorage.getItem("userId");
 
-      setLoading(true);
-      try {
-        const resultAction = await updateTreatmentPreview({
-          id: selectedTreatmentID,
-          treatmentpreviewData: { uploadedFiles },
-        });
-        if (resultAction?.status === 200) {
-          toast.success("TP Add Successfully");
-        } else if (resultAction?.error?.message) {
-          toast.error(resultAction.error.message || "Something went wrong");
-        }
-      } catch (error) {
-        toast.error("Failed to add TP:", error.message || error);
-      } finally {
-        setLoading(false);
-        setFile([]);
-        setIsModalVisible(false);
+    if (
+      !manufacturerID ||
+      manufacturerID === null ||
+      manufacturerID === "undefined"
+    ) {
+      message.error("Manufacturer ID not found. Please log in again.");
+      return;
+    }
+    const uploadedFiles = file.map((fileItem) => ({
+      fileName: fileItem.name,
+      fileUrl: fileItem.url,
+      uploadedBy: manufacturerID,
+      uploadedAt: fileItem.uploadedAt,
+    }));
+
+    setLoading(true);
+
+    const payload = {
+      patientId: patientID,
+      agentId: agentID,
+      manufacturerId: manufacturerID,
+      manufacturerTreatmentPreviewId: manufacturerTreatmentPreviewID,
+      status: status,
+      specialComments: specialComments,
+      uploadedFiles: uploadedFiles,
+    };
+
+    try {
+      const resultAction = await dispatch(addTreatmentPreview(payload));
+      const response = resultAction.payload;
+
+      if (resultAction.error) {
+        toast.error(
+          resultAction.error.message || "Failed to upload treatment preview."
+        );
+      } else if (response) {
+        toast.success("Treatment Preview Uploaded Successfully!");
+      } else {
+        toast.error(response?.message || "Something went wrong.");
       }
+    } catch (error) {
+      console.error("Error while uploading treatment preview:", error?.message);
+      message.error("Failed to upload treatment preview.");
+    } finally {
+      setLoading(false);
+      setFile([]);
+      setIsModalVisible(false);
     }
   };
 
   const columns = [
     {
       title: "Patient",
-      dataIndex: "patientId",
-      key: "patientId",
-      render: (patientId) => (patientId ? patientId.name : "N/A"),
+      dataIndex: "linkedPatientId",
+      key: "linkedPatientId",
+      render: (linkedPatientId) =>
+        linkedPatientId ? linkedPatientId.name : "N/A",
     },
     {
       title: "Agent",
@@ -174,20 +193,21 @@ const ManufacturerDashboard = () => {
     {
       title: "Actions",
       key: "actions",
-      render: (text, record) => (
+      render: (user) => (
         <Space>
           <Button
             type="primary"
             htmlType="submit"
             style={{ backgroundColor: "#0b3c95", color: "white" }}
-            onClick={() => handleDownloadFiles(record.uploadedFiles)}
+            onClick={() => handleGetMediaClick(user)}
           >
-            {Svgs.download}
+            Get Media
           </Button>
           <Button
             onClick={() => {
-              setSelectedTreatmentID(record._id);
-              setSelectedAgentId(record.agentId._id);
+              setManufacturerTreatmentPreviewID(user._id);
+              setPatientID(user.linkedPatientId._id);
+              setAgentID(user.agentId._id);
               setIsModalVisible(true);
             }}
             type="primary"
@@ -208,13 +228,13 @@ const ManufacturerDashboard = () => {
         <Spin spinning={loading}>
           <Table
             columns={columns}
-            dataSource={treatmentpreviewsbyid}
+            dataSource={manufacturers}
             pagination={false}
           />
         </Spin>
       </div>
       <Modal
-        title="Upload TP"
+        title="Upload Treatment Preview"
         open={isModalVisible}
         onCancel={() => setIsModalVisible(false)}
         footer={null}
@@ -225,8 +245,18 @@ const ManufacturerDashboard = () => {
           fileList={file}
           accept=".mp4"
         >
-          <Button onClick={handleUploadTP}>Upload</Button>
+          <Button icon={<UploadOutlined />}>Click to Upload Files</Button>
         </Upload>
+        <div style={{ justifyContent: "end", display: "flex" }}>
+          <Button
+            onClick={handleUploadTP}
+            type="primary"
+            htmlType="submit"
+            style={{ backgroundColor: "#0b3c95", color: "white" }}
+          >
+            Upload Treatment Preview
+          </Button>
+        </div>
       </Modal>
     </div>
   );

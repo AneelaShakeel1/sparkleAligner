@@ -2,15 +2,13 @@ import React, { useState, useEffect } from "react";
 import { SideBar } from "../components/SideBar";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchAllUserAsync } from "../store/user/userSlice";
-import { addTreatmentPreview } from "../store/treatmentpreview/treatmentpreviewSlice";
+import { addManufacturer } from "../store/manufacturer/manufacturerSlice";
 import { Select, Button, Form, Upload, message } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 
 export default function Manufacturer() {
   const [selectedManufacturer, setSelectedManufacturer] = useState(null);
   const [selectedPatient, setSelectedPatient] = useState(null);
-  const [specialComments, setSpecialComments] = useState("");
-  const [status, setStatus] = useState("Pending");
   const [file, setFile] = useState([]);
 
   const getAllUsers = useSelector((state) =>
@@ -44,13 +42,13 @@ export default function Manufacturer() {
       const formData = new FormData();
       formData.append("file", file);
       formData.append("upload_preset", "aneela");
-      formData.append("cloud_name", "aneelacloud"); // Add cloud_name
+      formData.append("cloud_name", "aneelacloud");
 
       const response = await fetch(
-        "https://api.cloudinary.com/v1_1/aneelacloud/auto/upload", // Correct URL for Cloudinary upload
+        "https://api.cloudinary.com/v1_1/aneelacloud/auto/upload",
         {
           method: "POST",
-          body: formData, // Send the FormData object as the request body
+          body: formData,
         }
       );
 
@@ -58,9 +56,8 @@ export default function Manufacturer() {
         throw new Error(`Failed to upload: ${response.statusText}`);
       }
 
-      // Get the response data from Cloudinary
       const data = await response.json();
-      // Get the uploaded file URL from Cloudinary response
+
       const fileUrl = data.secure_url;
       setFile((prevFiles) => [
         ...prevFiles,
@@ -114,8 +111,6 @@ export default function Manufacturer() {
       message.error("Selected manufacturer or patient is not valid.");
       return;
     }
-
-    // Prepare payload with file details
     const uploadedFiles = file.map((fileItem) => ({
       fileName: fileItem.name,
       fileUrl: fileItem.url,
@@ -124,30 +119,31 @@ export default function Manufacturer() {
     }));
 
     const payload = {
-      patientId: patient._id,
-      manufacturerId: manufacturer._id,
       agentId: agentId,
-      status: status,
-      specialComments: specialComments,
+      linkedPatientId: patient._id,
       uploadedFiles: uploadedFiles,
     };
 
     try {
-      const resultAction = await dispatch(addTreatmentPreview(payload));
+      const resultAction = await dispatch(addManufacturer(payload));
       const response = resultAction.payload;
 
       if (resultAction.error) {
         message.error(
-          resultAction.error.message || "Failed to send treatment preview."
+          resultAction.error.message ||
+            "Failed to send patient media to manufacturer."
         );
       } else if (response) {
-        message.success("Treatment preview sent successfully!");
+        message.success("Patient Media Sent Successfully to Maufacturer!");
       } else {
         message.error(response?.message || "Something went wrong.");
       }
     } catch (error) {
-      console.error("Error while sending treatment preview:", error?.message);
-      message.error("Failed to send treatment preview.");
+      console.error(
+        "Error while sending patient media to maufacturer:",
+        error?.message
+      );
+      message.error("Failed to send patient media to maufacturer.");
     }
   };
 
