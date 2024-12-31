@@ -1,91 +1,119 @@
 import React, { useState, useEffect } from "react";
-import { Table, Button, Input, Modal, Space, Switch, Spin } from "antd";
+import {
+  Table,
+  Button,
+  Input,
+  Modal,
+  Space,
+  Switch,
+  Spin,
+  message,
+} from "antd";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchTreatmentPreviewByIdAsync } from "../store/treatmentpreview/treatmentpreviewSlice";
-import { updateTreatmentPreview } from "../service/treatmentpreviewService";
+import { fetchFinalStagePreviewByIdAsync } from "../store/FinalStagePreviewForDoctorByAgent/FinalStagePreviewForDoctorByAgentSlice";
+import { addapproveOrDenyDoctor } from "../store/doctorApproval/doctorApprovalSlice";
 import { SideBar } from "../components/SideBar";
 import { toast } from "react-toastify";
 import { Svgs } from "../components/Svgs/svg-icons";
+import JSZip from "jszip";
+import { saveAs } from "file-saver";
 
 const DoctorDashboard = () => {
   const dispatch = useDispatch();
-  const { treatmentpreviewsbyid } = useSelector(
-    (state) => state.treatmentpreview
+  const [doctorID, setDoctorID] = useState(null);
+  const { finalStagePreviewsById } = useSelector(
+    (state) => state.finalStagePreview
   );
-  const [specialComments, setSpecialComments] = useState("");
+
+  const [status, setStatus] = useState("deny");
+  const [comment, setComment] = useState("");
   const [loading, setLoading] = useState(false);
   const [visible, setVisible] = useState(false);
-  const [selectedTreatmentID, setSelectedTreatmentID] = useState(null);
-  const [treatmentStatus, setTreatmentStatus] = useState({});
 
   useEffect(() => {
-    const doctorId = localStorage.getItem("userId");
-    if (doctorId) {
-      dispatch(fetchTreatmentPreviewByIdAsync(doctorId));
-    }
-  }, [dispatch]);
-
-  const handleAddComment = (id) => {
-    setSelectedTreatmentID(id);
-    setVisible(true);
-  };
-
-  const handleSaveComment = async () => {
-    if (selectedTreatmentID) {
-      const status = treatmentStatus[selectedTreatmentID] || "Rejected";
-      setLoading(true);
+    const getDoctorId = async () => {
       try {
-        const resultAction = await updateTreatmentPreview({
-          id: selectedTreatmentID,
-          treatmentpreviewData: { specialComments, status },
-        });
-        if (resultAction?.status === 200) {
-          toast.success("Comments Add Successfully");
-        } else if (resultAction?.error?.message) {
-          toast.error(resultAction.error.message || "Something went wrong");
+        const ID = localStorage.getItem("userId");
+        if (ID) {
+          setDoctorID(ID);
+        } else {
+          console.warn("Doctor ID not found.");
         }
       } catch (error) {
-        toast.error("Failed to add comments:", error.message || error);
-      } finally {
-        setLoading(false);
-        setVisible(false);
-        setSpecialComments("");
+        console.error("Error fetching doctor ID:", error);
       }
+    };
+    getDoctorId();
+  }, [doctorID]);
+
+  useEffect(() => {
+    if (doctorID) {
+      dispatch(fetchFinalStagePreviewByIdAsync(doctorID));
+    }
+  }, [doctorID]);
+
+  const handleSaveComment = async () => {
+    setLoading(true);
+
+    const payload = {
+      doctorId: doctorID,
+      status: status,
+      comment: comment,
+    };
+    try {
+      const resultAction = await dispatch(addapproveOrDenyDoctor(payload));
+      const response = resultAction.payload;
+
+      if (resultAction.error) {
+        toast.error(resultAction.error.message || "Failed to send approval.");
+      } else if (response) {
+        toast.success("Approval Send Successfully!");
+      } else {
+        toast.error(response?.message || "Something went wrong.");
+      }
+    } catch (error) {
+      console.error("Error while sending approval:", error?.message);
+      message.error("Failed to send approval.");
+    } finally {
+      setLoading(false);
+      setComment("");
+      setVisible(false);
     }
   };
 
-  const handleStatusChange = (checked, record) => {
-    setTreatmentStatus((prevState) => ({
-      ...prevState,
-      [record._id]: checked ? "Approved" : "Rejected",
-    }));
+  const handleStatusChange = (checked) => {
+    setStatus(checked ? "approve" : "deny");
   };
 
-  const handleDownloadFiles = async (files) => {
-    for (const file of files) {
-      const response = await fetch(file.fileUrl);
-      const blob = await response.blob();
-      const link = document.createElement("a");
-      link.href = window.URL.createObjectURL(blob);
-      link.setAttribute("download", file.fileName || "file");
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+  const handleDownloadFiles = async (user) => {
+    try {
+      const zip = new JSZip();
+      const patientDocsPromises = user.uploadedFiles.map(async (file) => {
+        const response = await fetch(file.fileUrl);
+        const blob = await response.blob();
+        zip.file(file.fileName, blob);
+      });
+      await Promise.all(patientDocsPromises);
+      const content = await zip.generateAsync({ type: "blob" });
+      saveAs(content, `${user.linkedPatientId.name}_Docs.zip`);
+    } catch (error) {
+      console.error("Error fetching patient Docs:", error);
     }
   };
 
   const columns = [
     {
       title: "Patient",
-      dataIndex: "patientId",
-      key: "patientId",
-      render: (patientId) => (patientId ? patientId.name : "N/A"),
+      dataIndex: "linkedPatientId",
+      key: "linkedPatientId",
+      render: (linkedPatientId) =>
+        linkedPatientId ? linkedPatientId.name : "---",
     },
     {
       title: "Agent",
       dataIndex: "agentId",
       key: "agentId",
-      render: (agentId) => (agentId ? agentId.name : "N/A"),
+      render: (agentId) => (agentId ? agentId.name : "---"),
     },
     {
       title: "Uploaded Files",
@@ -108,31 +136,34 @@ const DoctorDashboard = () => {
     },
     {
       title: "Approval Status",
-      key: "status",
-      render: (text, record) => (
+      // key: "status",
+      render: () => (
         <Switch
-          checked={treatmentStatus[record._id] === "Approved"}
-          onChange={(checked) => handleStatusChange(checked, record)}
-          checkedChildren="Approved"
-          unCheckedChildren="Rejected"
+          checked={status === "approve"}
+          onChange={(checked) => handleStatusChange(checked)}
+          checkedChildren="Approve"
+          unCheckedChildren="Deny"
+          style={{
+            backgroundColor: status === "approve" ? "#0b3c95" : "#898989",
+          }}
         />
       ),
     },
     {
       title: "Actions",
-      key: "actions",
-      render: (text, record) => (
+      // key: "actions",
+      render: (user) => (
         <Space>
           <Button
             type="primary"
             htmlType="submit"
             style={{ backgroundColor: "#0b3c95", color: "white" }}
-            onClick={() => handleDownloadFiles(record.uploadedFiles)}
+            onClick={() => handleDownloadFiles(user)}
           >
             {Svgs.download}
           </Button>
           <Button
-            onClick={() => handleAddComment(record._id)}
+            onClick={() => setVisible(true)}
             type="primary"
             htmlType="submit"
             style={{ backgroundColor: "#0b3c95", color: "white" }}
@@ -151,19 +182,19 @@ const DoctorDashboard = () => {
         <Spin spinning={loading}>
           <Table
             columns={columns}
-            dataSource={treatmentpreviewsbyid}
+            dataSource={finalStagePreviewsById}
             pagination={false}
           />
         </Spin>
         <Modal
           title="Add Comment"
-          visible={visible}
+          open={visible}
           onCancel={() => setVisible(false)}
         >
           <Input.TextArea
             rows={4}
-            value={specialComments}
-            onChange={(e) => setSpecialComments(e.target.value)}
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
             placeholder="Enter your comment here"
             style={{ marginTop: 5 }}
           />

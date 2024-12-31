@@ -78,6 +78,13 @@ const MENU_CONFIG = {
           className: SIDEBAR_CLASS,
           icon: Svgs.ellipse,
         },
+        {
+          label: "Patients Approvals",
+          key: "Patients Approvals",
+          link: "/patients-approvals",
+          className: SIDEBAR_CLASS,
+          icon: Svgs.ellipse,
+        },
       ],
     },
     {
@@ -94,9 +101,9 @@ const MENU_CONFIG = {
           icon: Svgs.ellipse,
         },
         {
-          label: "Doctor Response",
-          key: "Doctor Response",
-          link: "/doctor-response",
+          label: "Doctors Approvals",
+          key: "Doctors Approvals",
+          link: "/doctors-approvals",
           className: SIDEBAR_CLASS,
           icon: Svgs.ellipse,
         },

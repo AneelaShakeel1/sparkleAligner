@@ -2,15 +2,13 @@ import React, { useState, useEffect } from "react";
 import { SideBar } from "../components/SideBar";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchAllUserAsync } from "../store/user/userSlice";
-import { addTreatmentPreview } from "../store/treatmentpreview/treatmentpreviewSlice";
+import { addFinalStagePreview } from "../store/FinalStagePreviewForDoctorByAgent/FinalStagePreviewForDoctorByAgentSlice";
 import { Select, Button, Form, Upload, message } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 
 export default function Doctor() {
   const [selectedDoctor, setSelectedDoctor] = useState(null);
   const [selectedPatient, setSelectedPatient] = useState(null);
-  const [specialComments, setSpecialComments] = useState("");
-  const [status, setStatus] = useState("Pending");
   const [file, setFile] = useState([]);
 
   const getAllUsers = useSelector((state) =>
@@ -28,11 +26,61 @@ export default function Doctor() {
   const doctors = getAllUsers.filter((user) => user.role === "Doctor");
   const patients = getAllUsers.filter((user) => user.role === "Patient");
 
-  const handleFileChange = (info) => {
-    setFile(info.fileList);
-    // cloudinary
-    // response = url
-    // setFileURL(url)
+  const handleFileUpload = async (info) => {
+    if (!info.fileList || info.fileList.length === 0) {
+      message.error("No file selected.");
+      return;
+    }
+
+    const file = info.fileList[info.fileList.length - 1].originFileObj;
+    try {
+      message.loading({ content: "Uploading file...", key: "upload" });
+
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("upload_preset", "aneela");
+      formData.append("cloud_name", "aneelacloud");
+
+      const response = await fetch(
+        "https://api.cloudinary.com/v1_1/aneelacloud/auto/upload",
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to upload: ${response.statusText}`);
+      }
+      const data = await response.json();
+
+      const fileUrl = data.secure_url;
+      setFile((prevFiles) => [
+        ...prevFiles,
+        {
+          name: file.name,
+          url: fileUrl,
+          uploadedAt: new Date().toISOString(),
+        },
+      ]);
+      
+      message.success({
+        content: "File uploaded successfully!",
+        key: "upload",
+      });
+    } catch (error) {
+      console.error("Full error details:", {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        headers: error.response?.headers,
+      });
+
+      message.error({
+        content: `Failed to upload file: ${error.message}`,
+        key: "upload",
+      });
+    }
   };
 
   const handleSend = async () => {
@@ -55,37 +103,39 @@ export default function Doctor() {
 
     const uploadedFiles = file.map((fileItem) => ({
       fileName: fileItem.name,
-      fileUrl: "https://picsum.photos/200/300",
+      fileUrl: fileItem.url,
       uploadedBy: agentId,
       uploadedAt: new Date().toISOString(),
     }));
 
     const payload = {
-      patientId: patient._id,
-      doctorId: doctor._id,
       agentId: agentId,
-      status: status,
-      specialComments: specialComments,
+      doctorId: doctor._id,
+      linkedPatientId: patient._id,
       uploadedFiles: uploadedFiles,
     };
 
     try {
-      const resultAction = await dispatch(addTreatmentPreview(payload));
+      const resultAction = await dispatch(addFinalStagePreview(payload));
 
       const response = resultAction.payload;
 
       if (resultAction.error) {
         message.error(
-          resultAction.error.message || "Failed to send treatment preview."
+          resultAction.error.message ||
+            "Failed to send final stage preview to doctor."
         );
       } else if (response) {
-        message.success("Treatment preview sent successfully!");
+        message.success("Final Stage Preview sent successfully!");
       } else {
         message.error(response?.message || "Something went wrong.");
       }
     } catch (error) {
-      console.error("Error while sending treatment preview:", error?.message);
-      message.error("Failed to send treatment preview.");
+      console.error(
+        "Error while sending final stage preview to doctor:",
+        error?.message
+      );
+      message.error("Failed to send final stage preview to doctor.");
     }
   };
 
@@ -98,14 +148,14 @@ export default function Doctor() {
           onFinish={handleSend}
           className="space-y-4 w-full mx-6 my-6"
         >
-          <Form.Item label="Upload Treatment Preview" name="file">
+          <Form.Item label="Upload Final Stage Preview To Doctor" name="file">
             <Upload
-              onChange={handleFileChange}
+              onChange={handleFileUpload}
               beforeUpload={() => false}
               fileList={file}
-              accept=".pdf, .png, .jpg, .jpeg, .stl"
+              accept=".pdf, .png, .jpg, .jpeg, .doc, .docx, .mp4, .avi, .mov , .stl"
             >
-              <Button icon={<UploadOutlined />}>Click to Upload</Button>
+              <Button icon={<UploadOutlined />}>Click to Upload Files</Button>
             </Upload>
           </Form.Item>
           <Form.Item label="Select Patient" name="patient">

@@ -6,9 +6,10 @@ import ManufacturerDashboard from "../pages/manufacturerdashboard.js";
 import ManufacturerResponse from "../pages/manufacturerresponse.js";
 import Manufacturer from "../pages/manufacturer.js";
 import Doctor from "../pages/doctor.js";
-import DoctorResponse from "../pages/doctorresponse.js";
+import DoctorsApprovals from "../pages/doctorsapprovals.js";
 import chat from "../pages/chat.js";
 import Analytics from "../pages/analytics.js";
+import patientsapprovals from "../pages/patientsapprovals.js";
 
 const routes = [
   {
@@ -33,8 +34,8 @@ const routes = [
     isPublic: true,
   },
   {
-    path: "/doctor-response",
-    pages: DoctorResponse,
+    path: "/doctors-approvals",
+    pages: DoctorsApprovals,
     requiredPermission: "manage_users",
     isPublic: true,
   },
@@ -53,6 +54,12 @@ const routes = [
   {
     path: "/manufacturer",
     pages: Manufacturer,
+    requiredPermission: "manage_users",
+    isPublic: true,
+  },
+  {
+    path: "/patients-approvals",
+    pages: patientsapprovals,
     requiredPermission: "manage_users",
     isPublic: true,
   },
