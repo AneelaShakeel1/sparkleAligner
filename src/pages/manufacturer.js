@@ -3,13 +3,14 @@ import { SideBar } from "../components/SideBar";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchAllUserAsync } from "../store/user/userSlice";
 import { addManufacturer } from "../store/manufacturer/manufacturerSlice";
-import { Select, Button, Form, Upload, message } from "antd";
+import { Select, Button, Form, Upload, message,Input } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 
 export default function Manufacturer() {
   const [selectedManufacturer, setSelectedManufacturer] = useState(null);
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [file, setFile] = useState([]);
+  const [specialComments, setSpecialComments] = useState("");
 
   const getAllUsers = useSelector((state) =>
     state.user ? state.user.users : []
@@ -122,6 +123,7 @@ export default function Manufacturer() {
       agentId: agentId,
       linkedPatientId: patient._id,
       uploadedFiles: uploadedFiles,
+      specialComments: specialComments,
     };
 
     try {
@@ -201,6 +203,14 @@ export default function Manufacturer() {
                 <Option value={null}>No Manufacturers available</Option>
               )}
             </Select>
+          </Form.Item>
+          <Form.Item label="Special Comments" name="specialComments">
+            <Input.TextArea
+              rows={1}
+              value={specialComments}
+              onChange={(e) => setSpecialComments(e.target.value)}
+              placeholder="Add special comments."
+            />
           </Form.Item>
           <Form.Item style={{ justifyContent: "end", display: "flex" }}>
             <Button

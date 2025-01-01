@@ -8,6 +8,7 @@ import JSZip from "jszip";
 import { saveAs } from "file-saver";
 import { SideBar } from "../components/SideBar";
 import { toast } from "react-toastify";
+import { Svgs } from "../components/Svgs/svg-icons";
 
 const ManufacturerDashboard = () => {
   const dispatch = useDispatch();
@@ -21,6 +22,8 @@ const ManufacturerDashboard = () => {
   const [status, setStatus] = useState("Pending");
   const [file, setFile] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isViewModalVisible, setIsViewModalVisible] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
 
   useEffect(() => {
     dispatch(fetchAllManufacturerAsync());
@@ -40,6 +43,22 @@ const ManufacturerDashboard = () => {
     } catch (error) {
       console.error("Error fetching patient media:", error);
     }
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "---";
+
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, "0");
+    const day = date.getDate().toString().padStart(2, "0");
+    let hours = date.getHours();
+    const minutes = date.getMinutes().toString().padStart(2, "0");
+    const ampm = hours >= 12 ? "PM" : "AM";
+    hours = hours % 12;
+    hours = hours ? hours : 12;
+
+    return `${day}-${month}-${year} ${hours}:${minutes} ${ampm}`;
   };
 
   const handleFileUpload = async (info) => {
@@ -175,19 +194,68 @@ const ManufacturerDashboard = () => {
       title: "Uploaded Files",
       dataIndex: "uploadedFiles",
       key: "uploadedFiles",
-      render: (files) => (
-        <Space>
-          {files.map((file) => (
-            <a
-              href={file.fileUrl}
-              key={file._id}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {file.fileName}
-            </a>
-          ))}
-        </Space>
+      render: (files) => {
+        const showMore = files.length > 2;
+        const displayedFiles = files.slice(0, 2).map((file, index) => (
+          <a
+            href={file.fileUrl}
+            key={index}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {file.fileName}
+          </a>
+        ));
+        return (
+          <Space>
+            {displayedFiles.reduce((prev, curr, index) => {
+              if (index === 0) return [curr];
+              return [...prev, ",", curr];
+            }, [])}
+            {showMore && (
+              <span
+                style={{ color: "#0b3c95", cursor: "pointer", fontSize: 10 }}
+              >
+                More media...
+              </span>
+            )}
+          </Space>
+        );
+      },
+    },
+    {
+      title: "Special Comments",
+      dataIndex: "specialComments",
+      key: "specialComments",
+      render: (specialComments) => {
+        if (specialComments && specialComments.length > 15) {
+          return specialComments.slice(0, 15) + "...";
+        }
+        return specialComments || "---";
+      },
+    },
+    {
+      title: "Date",
+      dataIndex: "createdAt",
+      key: "createdAt",
+      render: (createdAt) => formatDate(createdAt),
+    },
+    {
+      title: "View",
+      dataIndex: "view",
+      key: "view",
+      render: (text, user) => (
+        <Button
+          type="primary"
+          htmlType="submit"
+          style={{ backgroundColor: "#0b3c95", color: "white" }}
+          onClick={() => {
+            setSelectedUser(user);
+            setIsViewModalVisible(true);
+          }}
+        >
+          {Svgs.view}
+        </Button>
       ),
     },
     {
@@ -201,7 +269,7 @@ const ManufacturerDashboard = () => {
             style={{ backgroundColor: "#0b3c95", color: "white" }}
             onClick={() => handleGetMediaClick(user)}
           >
-            Get Media
+            {Svgs.download}
           </Button>
           <Button
             onClick={() => {
@@ -214,7 +282,7 @@ const ManufacturerDashboard = () => {
             htmlType="submit"
             style={{ backgroundColor: "#0b3c95", color: "white" }}
           >
-            Upload TP
+            <UploadOutlined />
           </Button>
         </Space>
       ),
@@ -257,6 +325,49 @@ const ManufacturerDashboard = () => {
             Upload Treatment Preview
           </Button>
         </div>
+      </Modal>
+      <Modal
+        title="Patient Details"
+        open={isViewModalVisible}
+        onCancel={() => setIsViewModalVisible(false)}
+        footer={null}
+        width={700}
+      >
+        {selectedUser && (
+          <div>
+            <p>
+              <strong>Patient:</strong>{" "}
+              {selectedUser.linkedPatientId?.name || "---"}
+            </p>
+            <p>
+              <strong>Agent:</strong> {selectedUser.agentId?.name || "---"}
+            </p>
+            <p>
+              <strong>Special Comments:</strong>{" "}
+              {selectedUser.specialComments || "No comments available."}
+            </p>
+            <p>
+              <strong>Uploaded Files:</strong>
+            </p>
+            <Space>
+              {selectedUser.uploadedFiles?.map((file, index) => (
+                <React.Fragment key={index}>
+                  <a
+                    href={file.fileUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {file.fileName}
+                  </a>
+                  {index < selectedUser.uploadedFiles.length - 1 && ", "}
+                </React.Fragment>
+              ))}
+            </Space>
+            <p>
+              <strong>Date:</strong> {formatDate(selectedUser.createdAt)}
+            </p>
+          </div>
+        )}
       </Modal>
     </div>
   );

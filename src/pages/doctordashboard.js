@@ -21,6 +21,7 @@ import { saveAs } from "file-saver";
 const DoctorDashboard = () => {
   const dispatch = useDispatch();
   const [doctorID, setDoctorID] = useState(null);
+  const [patientID, setPatientID] = useState(null);
   const { finalStagePreviewsById } = useSelector(
     (state) => state.finalStagePreview
   );
@@ -59,6 +60,7 @@ const DoctorDashboard = () => {
       doctorId: doctorID,
       status: status,
       comment: comment,
+      patientId: patientID,
     };
     try {
       const resultAction = await dispatch(addapproveOrDenyDoctor(payload));
@@ -163,7 +165,10 @@ const DoctorDashboard = () => {
             {Svgs.download}
           </Button>
           <Button
-            onClick={() => setVisible(true)}
+            onClick={() => {
+              setVisible(true);
+              setPatientID(user.agentId._id);
+            }}
             type="primary"
             htmlType="submit"
             style={{ backgroundColor: "#0b3c95", color: "white" }}
