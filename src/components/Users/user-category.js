@@ -84,7 +84,7 @@ function UserCategory({ data, role }) {
       dataIndex: "view",
       key: "view",
       render: (text, user) => (
-        <div onClick={() => handleViewClick(user)}>{Svgs.view}</div>
+        <div onClick={() => handleViewClick(user)}>{Svgs.viewgray}</div>
       ),
     },
     {
