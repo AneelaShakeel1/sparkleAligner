@@ -121,20 +121,34 @@ const DoctorDashboard = () => {
       title: "Uploaded Files",
       dataIndex: "uploadedFiles",
       key: "uploadedFiles",
-      render: (files) => (
-        <Space>
-          {files.map((file) => (
-            <a
-              href={file.fileUrl}
-              key={file._id}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {file.fileName}
-            </a>
-          ))}
-        </Space>
-      ),
+      render: (files) => {
+        const showMore = files.length > 2;
+        const displayedFiles = files.slice(0, 2).map((file, index) => (
+          <a
+            href={file.fileUrl}
+            key={index}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {file.fileName}
+          </a>
+        ));
+        return (
+          <Space>
+            {displayedFiles.reduce((prev, curr, index) => {
+              if (index === 0) return [curr];
+              return [...prev, ",", curr];
+            }, [])}
+            {showMore && (
+              <span
+                style={{ color: "#0b3c95", cursor: "pointer", fontSize: 10 }}
+              >
+                More media...
+              </span>
+            )}
+          </Space>
+        );
+      },
     },
     {
       title: "Approval Status",

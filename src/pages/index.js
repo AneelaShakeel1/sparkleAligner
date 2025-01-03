@@ -3,13 +3,14 @@ import Home from "../pages/dashboard.js";
 import User from "./user.js";
 import DoctorDashboard from "./doctordashboard.js";
 import ManufacturerDashboard from './manufacturerdashboard.js'
-import ManufacturerResponse from "./manufacturerresponse.js";
+import ManufacturersResponse from "./manufacturersresponse.js";
 import chat from "./chat.js";
 import Doctor from "./doctor.js";
-import DoctorsApprovals from "./doctorsapprovals.js";
 import Manufacturer from "./manufacturer.js";
 import Analytics from "./analytics.js";
-import patientsapprovals from "./patientsapprovals.js";
+import TermsAndConditions from "./termsandconditions.js";
+import PatientsResponse from "./patientsresponse.js";
+import DoctorsResponse from "./doctorsresponse.js";
 
 const routes = [
   {
@@ -27,18 +28,23 @@ const routes = [
     isPublic: true,
   },
   {
+    path: "/terms-and-conditions",
+    pages: TermsAndConditions,
+    requiredPermission: "manage_services",
+  },
+  {
     path: "/analytics",
     pages: Analytics,
     requiredPermission: "manage_services",
   },
   {
-    path: "/doctors-approvals",
-    pages: DoctorsApprovals,
+    path: "/doctors-response",
+    pages: DoctorsResponse,
     requiredPermission: "manage_services",
   },
   {
-    path: "/manufacturer-response",
-    pages: ManufacturerResponse,
+    path: "/manufacturers-response",
+    pages: ManufacturersResponse,
     requiredPermission: "manage_services",
   },
   {
@@ -62,8 +68,8 @@ const routes = [
     requiredPermission: "manage_services",
   },
   {
-    path: "/patients-approvals",
-    pages: patientsapprovals,
+    path: "/patients-response",
+    pages: PatientsResponse,
     requiredPermission: "manage_services",
   },
   {

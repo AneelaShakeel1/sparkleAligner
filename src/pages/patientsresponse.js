@@ -4,18 +4,18 @@ import { useDispatch, useSelector } from "react-redux";
 import { SideBar } from "../components/SideBar";
 import { fetchAllPatientsApprovalsAsync } from "../store/patientsApprovals/patientsApprovalsSlice";
 
-const PatientsApprovals = () => {
+const PatientsResponse = () => {
   const dispatch = useDispatch();
 
-  const { approvals, loading } = useSelector(
+  const { patientapprovals, loading } = useSelector(
     (state) => state.patientsApprovals
   );
 
   useEffect(() => {
-    const agentId = localStorage.getItem("userId");
+    const userId = localStorage.getItem("userId"); // user can be agents or super admin bcs in menu-items this page is shown only to agents and superadmin
 
-    if (!agentId || agentId === "undefined" || agentId === null) {
-      message.error("Agent ID not found. Please log in again.");
+    if (!userId || userId === "undefined" || userId === null) {
+      message.error("Super Admin or Agent ID not found. Please log in again.");
       return;
     }
     dispatch(fetchAllPatientsApprovalsAsync());
@@ -47,7 +47,7 @@ const PatientsApprovals = () => {
       <div className="p-4">
         <Table
           columns={columns}
-          dataSource={approvals || []}
+          dataSource={patientapprovals || []}
           pagination={false}
           loading={loading}
         />
@@ -56,4 +56,4 @@ const PatientsApprovals = () => {
   );
 };
 
-export default PatientsApprovals;
+export default PatientsResponse;

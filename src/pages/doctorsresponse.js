@@ -1,17 +1,20 @@
 import React, { useEffect } from "react";
-import { Table } from "antd";
+import { Table ,message} from "antd";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchAllApprovalsAsync } from "../store/doctorApproval/doctorApprovalSlice";
 import { SideBar } from "../components/SideBar";
 
-const DoctorsApprovals = () => {
+const DoctorsResponse = () => {
   const dispatch = useDispatch();
-  const { approvals } = useSelector((state) => state.doctorsApproval);
+  const { doctorapprovals } = useSelector((state) => state.doctorsApproval);
 
   useEffect(() => {
-    const agentId = localStorage.getItem("userId");
+    const userId = localStorage.getItem("userId"); // user can be agents or super admin bcs in menu-items this page is shown only to agents and superadmin
 
-    if (!agentId || agentId === null || agentId === "undefined") return;
+    if (!userId || userId === "undefined" || userId === null) {
+      message.error("Super Admin or Agent ID not found. Please log in again.");
+      return;
+    }
 
     dispatch(fetchAllApprovalsAsync());
   }, [dispatch]);
@@ -45,10 +48,10 @@ const DoctorsApprovals = () => {
     <div className="h-full min-h-screen grid grid-columns">
       <SideBar />
       <div className="p-4 w-full">
-        <Table columns={columns} dataSource={approvals} pagination={false} />
+        <Table columns={columns} dataSource={doctorapprovals} pagination={false} />
       </div>
     </div>
   );
 };
 
-export default DoctorsApprovals;
+export default DoctorsResponse;

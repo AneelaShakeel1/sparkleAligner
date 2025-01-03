@@ -4,7 +4,7 @@ import { fetchAllPatientsApprovals } from "../../service/patientsApprovalsServic
 
 // Initial state with additional loading and error states for better management
 const initialState = {
-  approvals: [],
+  patientapprovals: [],
   loading: false,
   error: null,
 };
@@ -30,7 +30,7 @@ const patientsApprovalsSlice = createSlice({
       })
       .addCase(fetchAllPatientsApprovalsAsync.fulfilled, (state, action) => {
         state.loading = false; // Set loading state to false on success
-        state.approvals = action.payload; // Update the  patients approvals list with fetched data
+        state.patientapprovals = action.payload; // Update the  patients approvals list with fetched data
       })
       .addCase(fetchAllPatientsApprovalsAsync.rejected, (state, action) => {
         state.loading = false; // Set loading to false on error

@@ -862,6 +862,17 @@ export const Svgs = {
       <circle cx="3" cy="3" r="3" fill="#fff" />
     </svg>
   ),
+  ellipseblack: (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width={6}
+      height={6}
+      viewBox="0 0 6 6"
+      fill="none"
+    >
+      <circle cx="3" cy="3" r="3" fill="#000" />
+    </svg>
+  ),
   discountcode: (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -1345,8 +1356,8 @@ export const Svgs = {
   chat: (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      width={24}
-      height={24}
+      width={20}
+      height={20}
       viewBox="0 0 24 24"
       fill="none"
     >
@@ -1526,8 +1537,8 @@ export const Svgs = {
   exportcsv: (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      width={42}
-      height={42}
+      width={20}
+      height={20}
       viewBox="0 0 42 42"
       fill="none"
     >

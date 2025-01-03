@@ -9,7 +9,7 @@ import {
 
 // Initial state with additional loading and error states for better management
 const initialState = {
-  approvals: [],
+  doctorapprovals: [],
   approvalById: [],
   approval: null,
   loading: false,
@@ -83,7 +83,7 @@ const doctorsApprovalSlice = createSlice({
       })
       .addCase(addapproveOrDenyDoctor.fulfilled, (state, action) => {
         state.loading = false; // Set loading state to false on success
-        state.approvals.push(action.payload); // Add the new approval to the approvals list
+        state.doctorapprovals.push(action.payload); // Add the new approval to the approvals list
       })
       .addCase(addapproveOrDenyDoctor.rejected, (state, action) => {
         state.loading = false; // Set loading to false on error
@@ -97,7 +97,7 @@ const doctorsApprovalSlice = createSlice({
       })
       .addCase(fetchAllApprovalsAsync.fulfilled, (state, action) => {
         state.loading = false; // Set loading state to false on success
-        state.approvals = action.payload; // Update the approvals list with fetched data
+        state.doctorapprovals = action.payload; // Update the approvals list with fetched data
       })
       .addCase(fetchAllApprovalsAsync.rejected, (state, action) => {
         state.loading = false; // Set loading to false on error

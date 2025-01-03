@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Table, Space, Button, message, Modal, Upload } from "antd";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchTreatmentPreviewByIdAsync } from "../store/treatmentpreview/treatmentpreviewSlice";
+// import { fetchTreatmentPreviewByIdAsync } from "../store/treatmentpreview/treatmentpreviewSlice";
+import { fetchAllTreatmentPreviewAsync } from "../store/treatmentpreview/treatmentpreviewSlice";
 import { addTreatmentPreviewByAgent } from "../store/treatmentPreviewByAgent/treatmentPreviewByAgentSlice";
 import { SideBar } from "../components/SideBar";
 import JSZip from "jszip";
@@ -9,7 +10,7 @@ import { saveAs } from "file-saver";
 import { UploadOutlined } from "@ant-design/icons";
 import { toast } from "react-toastify";
 
-const ManufacturerResponse = () => {
+const ManufacturersResponse = () => {
   const dispatch = useDispatch();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [patientID, setPatientID] = useState(null);
@@ -18,18 +19,31 @@ const ManufacturerResponse = () => {
 
   const [file, setFile] = useState([]);
 
-  const { treatmentpreviewsbyid } = useSelector(
+  // const { treatmentpreviewsbyid } = useSelector(
+  //   (state) => state.treatmentpreview
+  // );
+  const { treatmentpreviews } = useSelector(
     (state) => state.treatmentpreview
   );
 
-  useEffect(() => {
-    const agentId = localStorage.getItem("userId");
+  // useEffect(() => {
+  //   const agentId = localStorage.getItem("userId");
 
-    if (!agentId || agentId === null || agentId === "undefined") {
-      message.error("agent ID not found. Please log in again.");
+  //   if (!agentId || agentId === null || agentId === "undefined") {
+  //     message.error("agent ID not found. Please log in again.");
+  //     return;
+  //   }
+  //   dispatch(fetchTreatmentPreviewByIdAsync(agentId));
+  // }, [dispatch]);
+
+  useEffect(() => {
+    const userId = localStorage.getItem("userId");//user can be agents and superadmin bcs this page in menu-items only show to admin and agents
+
+    if (!userId || userId === null || userId === "undefined") {
+      message.error("Super Admin or Agent ID not found. Please log in again.");
       return;
     }
-    dispatch(fetchTreatmentPreviewByIdAsync(agentId));
+    dispatch(fetchAllTreatmentPreviewAsync());
   }, [dispatch]);
 
   const handleGetTPsClick = async (user) => {
@@ -229,7 +243,8 @@ const ManufacturerResponse = () => {
       <div className="p-4 w-full">
         <Table
           columns={columns}
-          dataSource={treatmentpreviewsbyid}
+          dataSource={treatmentpreviews}
+          // dataSource={treatmentpreviewsbyid}
           pagination={false}
         />
       </div>
@@ -262,4 +277,4 @@ const ManufacturerResponse = () => {
   );
 };
 
-export default ManufacturerResponse;
+export default ManufacturersResponse;

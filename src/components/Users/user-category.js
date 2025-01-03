@@ -15,6 +15,10 @@ import DeleteUser from "./delete-user";
 import { Svgs } from "../Svgs/svg-icons";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
+import { updateUserAsync, fetchAllUserAsync } from "../../store/user/userSlice";
+import { useDispatch } from "react-redux";
+import { toast } from "react-toastify";
+
 const { Text } = Typography;
 
 function UserCategory({ data, role }) {
@@ -23,6 +27,8 @@ function UserCategory({ data, role }) {
   const [filteredData, setFilteredData] = useState(data);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(6);
+
+  const dispatch = useDispatch();
 
   useEffect(() => {
     setFilteredData(data);
@@ -64,21 +70,39 @@ function UserCategory({ data, role }) {
     }
   };
 
+  const handleDeleteMediaClick = async (user) => {
+    try {
+      let id = user._id;
+      const resultAction = await dispatch(
+        updateUserAsync({ id, ...{ media: [] } })
+      );
+      if (resultAction?.payload) {
+        await dispatch(fetchAllUserAsync());
+        toast.success("Media has been deleted successfully");
+      } else if (resultAction?.error?.message) {
+        toast.error(resultAction.error.message || "Something went wrong");
+      }
+    } catch (error) {
+      console.error("Error deleting patient media:", error);
+      toast.error("Error deleting patient media. Please try again.");
+    }
+  };
+
   const columns = [
     { title: "Name", dataIndex: "name", key: "name" },
     { title: "Email", dataIndex: "email", key: "email" },
-    {
-      title: "Profile",
-      dataIndex: "profile",
-      key: "profile",
-      render: (profile) => profile ?? "---",
-    },
-    {
-      title: "Treatment Details",
-      dataIndex: "treatment_details",
-      key: "treatment_details",
-      render: (treatment_details) => treatment_details ?? "---",
-    },
+    // {
+    //   title: "Profile",
+    //   dataIndex: "profile",
+    //   key: "profile",
+    //   render: (profile) => profile ?? "---",
+    // },
+    // {
+    //   title: "Treatment Details",
+    //   dataIndex: "treatment_details",
+    //   key: "treatment_details",
+    //   render: (treatment_details) => treatment_details ?? "---",
+    // },
     {
       title: "View",
       dataIndex: "view",
@@ -87,12 +111,12 @@ function UserCategory({ data, role }) {
         <div onClick={() => handleViewClick(user)}>{Svgs.viewgray}</div>
       ),
     },
-    {
-      title: "Status",
-      dataIndex: "status",
-      key: "status",
-      render: (status) => status ?? "---",
-    },
+    // {
+    //   title: "Status",
+    //   dataIndex: "status",
+    //   key: "status",
+    //   render: (status) => status ?? "---",
+    // },
     {
       title: "Actions",
       key: "actions",
@@ -102,17 +126,27 @@ function UserCategory({ data, role }) {
             {selectedEditUser ? <EditUser data={user} /> : Svgs.editg}
           </div>
           <DeleteUser data={user} goBack={() => setSelectedEditUser(null)} />
-          {console.log(user)}
           {role === "Patient" && user.media.length > 0 && (
-            <Button
-              onClick={() => handleGetMediaClick(user)}
-              style={{
-                backgroundColor: "#0b3c95",
-                color: "white",
-              }}
-            >
-              Get Media
-            </Button>
+            <>
+              <Button
+                onClick={() => handleGetMediaClick(user)}
+                style={{
+                  backgroundColor: "#0b3c95",
+                  color: "white",
+                }}
+              >
+                Get Media
+              </Button>
+              <Button
+                onClick={() => handleDeleteMediaClick(user)}
+                style={{
+                  backgroundColor: "#0b3c95",
+                  color: "white",
+                }}
+              >
+                Delete Media
+              </Button>
+            </>
           )}
         </Row>
       ),
@@ -139,7 +173,7 @@ function UserCategory({ data, role }) {
       {selectedViewUser && (
         <Modal
           title="USER DETAILS"
-          visible={true}
+          open={true}
           onCancel={() => setSelectedViewUser(null)}
           footer={null}
         >
@@ -149,19 +183,6 @@ function UserCategory({ data, role }) {
             </Form.Item>
             <Form.Item label="Email" style={{ marginTop: 10 }}>
               <Input value={selectedViewUser.email} disabled />
-            </Form.Item>
-            <Form.Item>
-              <div className="justify-end flex">
-                <Button
-                  style={{
-                    backgroundColor: "#0b3c95",
-                    color: "white",
-                    marginTop: 20,
-                  }}
-                >
-                  Download
-                </Button>
-              </div>
             </Form.Item>
           </Form>
         </Modal>
