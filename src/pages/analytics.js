@@ -34,6 +34,9 @@ export default function Analytics() {
   const [modalVisible, setModalVisible] = useState(false);
   const [patientDetails, setPatientDetails] = useState([]);
   const [dateClicked, setDateClicked] = useState("");
+  const [waitingModalVisible, setWaitingModalVisible] = useState(false);
+  const [waitingPatientDetails, setWaitingPatientDetails] = useState([]);
+  const [waitingDateClicked, setWaitingDateClicked] = useState("");
 
   useEffect(() => {
     dispatch(fetchAllTreatmentPreviewAsync());
@@ -70,6 +73,32 @@ export default function Analytics() {
     uploads,
   }));
 
+  const waitingData = treatmentpreviewsbyagent.reduce(
+    (acc, { createdAt, linkedPatientId }) => {
+      const date = getFormattedDate(createdAt);
+      const patientApproval = patientapprovals.find(
+        (approval) => approval.patientId._id === linkedPatientId._id
+      );
+
+      if (!patientApproval) {
+        if (!acc[date]) {
+          acc[date] = [];
+        }
+        acc[date].push({ patientName: linkedPatientId.name, createdAt });
+      }
+      return acc;
+    },
+    {}
+  );
+
+  const waitingChartData = Object.entries(waitingData).map(
+    ([date, uploads]) => ({
+      date,
+      count: uploads.length,
+      uploads,
+    })
+  );
+
   const handleDataPointClick = (date) => {
     setDateClicked(date);
     const patientsOnDate = uploadData[date];
@@ -81,6 +110,19 @@ export default function Analytics() {
         }))
       );
       setModalVisible(true);
+    }
+  };
+  const handleWaitingDataPointClick = (date) => {
+    setWaitingDateClicked(date);
+    const patientsOnDate = waitingData[date];
+    if (patientsOnDate) {
+      setWaitingPatientDetails(
+        patientsOnDate.map((patient, index) => ({
+          ...patient,
+          order: index + 1,
+        }))
+      );
+      setWaitingModalVisible(true);
     }
   };
 
@@ -122,43 +164,74 @@ export default function Analytics() {
       <SideBar />
       <PerfectScrollbar style={{ height: "100vh" }}>
         <Content className="pr-12 pt-5 pb-5">
-          {Object.entries(statusCounts).map(([key, count]) => (
-            <div style={{ marginBottom: 20 }}>
-              <div
-                key={key}
-                style={{
-                  backgroundColor: "white",
-                  borderWidth: 0.5,
-                  borderColor: "lightgray",
-                  height: 50,
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  fontWeight: "lighter",
-                  color: "#0b3c95",
-                  borderRadius: 15,
-                  marginLeft: 60,
-                  marginBottom: 20,
-                }}
-              >
-                {`${key} : ${count}`}
-              </div>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart
-                  data={chartData}
-                  onClick={(e) => handleDataPointClick(e.activeLabel)}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
-                  <YAxis
-                    domain={[1, "auto"]}
-                    tickFormatter={(tick) => (tick % 1 === 0 ? tick : "")}
-                  />
-                  <Line type="bump" dataKey="count" stroke="#0b3c95" />
-                </LineChart>
-              </ResponsiveContainer>
+          <div style={{ marginBottom: 20 }}>
+            <div
+              style={{
+                backgroundColor: "white",
+                borderWidth: 0.5,
+                borderColor: "lightgray",
+                height: 50,
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                fontWeight: "lighter",
+                color: "#0b3c95",
+                borderRadius: 15,
+                marginLeft: 60,
+                marginBottom: 20,
+              }}
+            >
+              {`Total Treatment Previews (TP) uploaded: ${statusCounts["Total Treatment Previews (TP) uploaded"]}`}
             </div>
-          ))}
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart
+                data={chartData}
+                onClick={(e) => handleDataPointClick(e.activeLabel)}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" />
+                <YAxis
+                  domain={[1, "auto"]}
+                  tickFormatter={(tick) => (tick % 1 === 0 ? tick : "")}
+                />
+                <Line type="bump" dataKey="count" stroke="#0b3c95" />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+          <div style={{ marginBottom: 20 }}>
+            <div
+              style={{
+                backgroundColor: "white",
+                borderWidth: 0.5,
+                borderColor: "lightgray",
+                height: 50,
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                fontWeight: "lighter",
+                color: "#0b3c95",
+                borderRadius: 15,
+                marginLeft: 60,
+                marginBottom: 20,
+              }}
+            >
+              {`Number of TPs waiting for patient approval: ${statusCounts["Number of TPs waiting for patient approval"]}`}
+            </div>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart
+                data={waitingChartData}
+                onClick={(e) => handleWaitingDataPointClick(e.activeLabel)}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" />
+                <YAxis
+                  domain={[1, "auto"]}
+                  tickFormatter={(tick) => (tick % 1 === 0 ? tick : "")}
+                />
+                <Line type="bump" dataKey="count" stroke="#0b3c95" />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
           <Modal
             title={`Treatment Previews uploaded on ${dateClicked}`}
             open={modalVisible}
@@ -182,6 +255,31 @@ export default function Analytics() {
               ))
             ) : (
               <p>No TPs uploaded on this date.</p>
+            )}
+          </Modal>
+          <Modal
+            title={`Treatment Previews waiting for patient approval from ${waitingDateClicked}`}
+            open={waitingModalVisible}
+            onCancel={() => setWaitingModalVisible(false)}
+            footer={null}
+          >
+            {waitingPatientDetails.length > 0 ? (
+              waitingPatientDetails.map((patient, index) => (
+                <p
+                  key={index}
+                  style={{
+                    flexDirection: "row",
+                    display: "flex",
+                    gap: 10,
+                    alignItems: "center",
+                  }}
+                >
+                  {Svgs.ellipseblack}
+                  {`Patient ${patient.order}: ${patient.patientName}`}
+                </p>
+              ))
+            ) : (
+              <p>No treatment previews found for this date.</p>
             )}
           </Modal>
         </Content>
