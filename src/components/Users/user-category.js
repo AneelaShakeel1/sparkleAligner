@@ -32,6 +32,10 @@ function UserCategory({ data, role }) {
 
   useEffect(() => {
     setFilteredData(data);
+    if (role !== "All") {
+      setCurrentPage(1);
+      setPageSize(6);
+    }
   }, [data]);
 
   const handleEditClick = (user) => {

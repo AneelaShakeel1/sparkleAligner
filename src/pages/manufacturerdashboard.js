@@ -195,8 +195,8 @@ const ManufacturerDashboard = () => {
       dataIndex: "uploadedFiles",
       key: "uploadedFiles",
       render: (files) => {
-        const showMore = files.length > 2;
-        const displayedFiles = files.slice(0, 2).map((file, index) => (
+        const showMore = files.length > 1;
+        const displayedFiles = files.slice(0, 1).map((file, index) => (
           <a
             href={file.fileUrl}
             key={index}

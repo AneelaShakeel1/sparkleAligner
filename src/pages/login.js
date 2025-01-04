@@ -34,13 +34,13 @@ const Login = () => {
       setLoading(true);
       // debugger;
       let response;
-      if (formValues?.role === "superadmin") {
-        const resultAction = await dispatch(adminlogin(formValues));
-        response = resultAction.payload;
-      } else {
+      // if (formValues?.role === "superadmin") {
+      //   const resultAction = await dispatch(adminlogin(formValues));
+      //   response = resultAction.payload;
+      // } else {
         const resultAction = await dispatch(login(formValues));
         response = resultAction.payload;
-      }
+      // }
       console.log(response, "response");
       if (response) {
         console.log(response,'===========================')

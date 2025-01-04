@@ -29,11 +29,15 @@ export default function Users() {
   }, [dispatch]);
 
   useEffect(() => {
+    debugger;
     if (selectedRole === "All" && role === "Agent") {
-      const filtered = getAllUsers.filter((user) => user.role !== "Agent");
+      const filtered = getAllUsers.filter(
+        (user) => user.role !== "Agent" && user.role !== "SuperAdmin"
+      );
       setFilteredUsers(filtered);
-    } else if (selectedRole === "All" && role !== "Agent") {
-      setFilteredUsers(getAllUsers);
+    } else if (selectedRole === "All" && role === "SuperAdmin") {
+      const filtered = getAllUsers.filter((user) => user.role !== "SuperAdmin");
+      setFilteredUsers(filtered);
     } else {
       const filtered = getAllUsers.filter((user) => user.role === selectedRole);
       setFilteredUsers(filtered);
@@ -94,7 +98,7 @@ export default function Users() {
               <CreateUser />
             </div>
             <div className="mt-6">
-              <UserCategory data={filteredUsers || []} role={selectedRole}/>
+              <UserCategory data={filteredUsers || []} role={selectedRole} />
             </div>
           </Content>
         </PerfectScrollbar>
