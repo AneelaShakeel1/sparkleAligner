@@ -8,41 +8,26 @@ import {
   Avatar,
   Space,
   Typography,
+  Tabs,
 } from "antd";
 import { SendOutlined } from "@ant-design/icons";
 import { Svgs } from "../components/Svgs/svg-icons";
 import { fetchAllUserAsync } from "../store/user/userSlice";
 import { useDispatch, useSelector } from "react-redux";
+import { SideBar } from "../components/SideBar";
+import websocketService from "../services/websocketService";
+import { setToken } from "../store/auth/authSlice";
 
 const { Header, Sider, Content, Footer } = Layout;
 const { Text } = Typography;
-
-const patientsData = [
-  {
-    id: 1,
-    name: "Hafsa Shakeel",
-    messages: [
-      {
-        sender: "Hafsa Shakeel",
-        content: "Hey, how's it going?",
-        time: "10:15 AM",
-      },
-      { sender: "You", content: "I'm good, thanks!", time: "10:16 AM" },
-    ],
-  },
-  {
-    id: 2,
-    name: "yusra",
-    messages: [
-      { sender: "yusra", content: "Let's catch up soon!", time: "10:05 AM" },
-      { sender: "You", content: "Definitely!", time: "10:06 AM" },
-    ],
-  },
-];
+const { TabPane } = Tabs;
 
 export default function Chat() {
-  const [selectedPatient, setSelectedPatient] = useState(null);
+  const [selectedPatient, setSelectedPatient] = useState({ messages: [] });
   const [message, setMessage] = useState("");
+  const [activeTab, setActiveTab] = useState("patient");
+  const [currentConversation, setCurrentConversation] = useState(null);
+  const currentUser = useSelector((state) => state.auth.user);
 
   const getAllUsers = useSelector((state) =>
     state.user ? state.user.users : []
@@ -52,10 +37,12 @@ export default function Chat() {
 
   useEffect(() => {
     if (getAllUsers) {
-      const filtered = getAllUsers.filter((user) => user.role === "Patient");
+      const filtered = getAllUsers.filter(
+        (user) => user.role === capitalizeFirstLetter(activeTab)
+      );
       setFilteredUsers(filtered);
     }
-  }, [getAllUsers]);
+  }, [getAllUsers, activeTab]);
 
   const dispatch = useDispatch();
 
@@ -63,70 +50,217 @@ export default function Chat() {
     dispatch(fetchAllUserAsync());
   }, [dispatch]);
 
-  const handleSelectPatient = (patient) => {
-    setSelectedPatient(patient);
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token && !currentUser) {
+      dispatch(setToken(token));
+    }
+  }, [dispatch, currentUser]);
+
+  useEffect(() => {
+    console.log("Current user from Redux:", currentUser);
+    console.log("Token from localStorage:", localStorage.getItem("token"));
+
+    if (!currentUser || !localStorage.getItem("token")) {
+      console.log("User not properly logged in");
+      return;
+    }
+
+    if (currentUser) {
+      websocketService.connect(currentUser._id);
+
+      websocketService.onNewMessage((newMessage) => {
+        if (
+          currentConversation &&
+          newMessage.conversationId === currentConversation._id
+        ) {
+          setSelectedPatient((prev) => ({
+            ...prev,
+            messages: [
+              ...prev.messages,
+              {
+                sender:
+                  newMessage.senderId === currentUser._id
+                    ? "You"
+                    : selectedPatient.name,
+                content: newMessage.text,
+                time: new Date(newMessage.createdAt).toLocaleTimeString(),
+              },
+            ],
+          }));
+        }
+      });
+
+      return () => websocketService.disconnect();
+    }
+  }, [currentUser, currentConversation]);
+
+  const handleSelectPatient = async (patient) => {
+    console.log("Selecting patient:", patient);
+
+    if (!currentUser) {
+      console.log("Please login first");
+      return;
+    }
+
+    try {
+      // Create conversation
+      const members = [currentUser._id, patient._id];
+      console.log("Creating conversation between members:", members);
+
+      // Set selected patient first with full patient data
+      setSelectedPatient({
+        _id: patient._id, // Make sure we have the ID
+        name: patient.name,
+        messages: [],
+        ...patient, // Include all other patient data
+      });
+
+      const conversation = await websocketService.createConversation(members);
+      console.log("Conversation created/retrieved:", conversation);
+
+      // Set conversation after successful creation
+      setCurrentConversation(conversation);
+
+      // Then fetch messages if conversation exists
+      if (conversation._id) {
+        const messages = await websocketService.getMessages(
+          conversation._id,
+          currentUser._id
+        );
+
+        console.log("Retrieved messages:", messages);
+
+        if (messages && messages.length > 0) {
+          const formattedMessages = messages.map((msg) => ({
+            sender: msg.senderId === currentUser._id ? "You" : patient.name,
+            content: msg.text,
+            time: new Date(msg.createdAt).toLocaleTimeString(),
+          }));
+
+          setSelectedPatient((prev) => ({
+            ...prev,
+            messages: formattedMessages,
+          }));
+        }
+      }
+    } catch (error) {
+      console.error("Error in handleSelectPatient:", error);
+    }
   };
 
-  const handleSendMessage = () => {
-    if (message.trim() && selectedPatient) {
+  const handleSendMessage = async () => {
+    console.log("Send Message Data:", {
+      currentUser,
+      selectedPatient,
+      currentConversation,
+      message,
+    });
+
+    if (!message.trim()) {
+      console.log("Message is empty");
+      return;
+    }
+
+    if (!selectedPatient?._id) {
+      console.log("No patient selected");
+      return;
+    }
+
+    if (!currentConversation?._id) {
+      console.log("No active conversation, creating new one...");
+      try {
+        const members = [currentUser._id, selectedPatient._id];
+        console.log("Creating conversation with members:", members);
+        const conversation = await websocketService.createConversation(members);
+        console.log("New conversation created:", conversation);
+        setCurrentConversation(conversation);
+      } catch (error) {
+        console.error("Error creating conversation:", error);
+        return;
+      }
+    }
+
+    try {
+      const sentMessage = await websocketService.sendMessage(
+        currentConversation._id,
+        currentUser._id,
+        message
+      );
+
+      console.log("Message sent successfully:", sentMessage);
+
       const newMessage = {
         sender: "You",
         content: message,
         time: new Date().toLocaleTimeString(),
       };
-      setSelectedPatient({
-        ...selectedPatient,
-        messages: [...selectedPatient.messages, newMessage],
-      });
+
+      setSelectedPatient((prev) => ({
+        ...prev,
+        messages: [...(prev.messages || []), newMessage],
+      }));
+
       setMessage("");
+    } catch (error) {
+      console.error("Error sending message:", error);
     }
   };
 
-  console.log(getAllUsers,'================getAllUsers============')
-  console.log(filteredUsers,'============filteredUsers================')
+  console.log(getAllUsers, "================getAllUsers============");
+  console.log(filteredUsers, "============filteredUsers================");
+
+  const capitalizeFirstLetter = (string) => {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+  };
+
+  const siderContent = (
+    <Sider
+      width={300}
+      style={{ background: "#fff", borderRight: "1px solid #ddd" }}
+    >
+      <Tabs
+        defaultActiveKey="patient"
+        onChange={setActiveTab}
+        style={{ marginBottom: 16 }}
+      >
+        <TabPane tab="Patients" key="patient" />
+        <TabPane tab="Doctors" key="doctor" />
+        <TabPane tab="Manufacturers" key="manufacturer" />
+      </Tabs>
+
+      <Menu mode="inline" style={{ height: "100%", borderRight: 0 }}>
+        <Input
+          placeholder={`Search ${capitalizeFirstLetter(activeTab)}`}
+          prefix={Svgs.search}
+          style={{ margin: "0 10px 16px", width: "calc(100% - 20px)" }}
+        />
+        <List
+          dataSource={filteredUsers}
+          style={{ paddingLeft: "10px" }}
+          renderItem={(user) => (
+            <List.Item
+              onClick={() => handleSelectPatient(user)}
+              style={{ cursor: "pointer" }}
+            >
+              <List.Item.Meta
+                avatar={
+                  <Avatar style={{ backgroundColor: "#0b3c95" }}>
+                    {user.name[0].toUpperCase()}
+                  </Avatar>
+                }
+                title={user.name}
+              />
+            </List.Item>
+          )}
+        />
+      </Menu>
+    </Sider>
+  );
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
-      <Sider
-        width={300}
-        style={{ background: "#fff", borderRight: "1px solid #ddd" }}
-      >
-        <div
-          style={{
-            padding: "10px",
-            fontSize: "20px",
-            fontWeight: "bold",
-            color: "#0b3c95",
-          }}
-        >
-          Patients
-        </div>
-        <Menu mode="inline" style={{ height: "100%", borderRight: 0 }}>
-          <Input
-            placeholder="Search Patient"
-            prefix={Svgs.search}
-            style={{ marginLeft: "10px" }}
-          />
-          <List
-            dataSource={filteredUsers}
-            style={{ paddingLeft: "10px", marginTop: "10px" }}
-            renderItem={(patient) => (
-              <List.Item onClick={() => handleSelectPatient(patient)}>
-                <List.Item.Meta
-                  avatar={
-                    <Avatar style={{ backgroundColor: "#0b3c95" }}>
-                      <Text style={{ color: "#fff", fontWeight: "bold" }}>
-                        P
-                      </Text>
-                    </Avatar>
-                  }
-                  title={patient.name}
-                />
-              </List.Item>
-            )}
-          />
-        </Menu>
-      </Sider>
+      {siderContent}
       <Layout>
         {selectedPatient ? (
           <>
@@ -160,7 +294,7 @@ export default function Chat() {
               }}
             >
               <div>
-                {patientsData[0].messages.map((msg, idx) => (
+                {selectedPatient.messages.map((msg, idx) => (
                   <div
                     key={idx}
                     style={{
@@ -172,13 +306,30 @@ export default function Chat() {
                   >
                     <div
                       style={{
-                        background: "#89898930",
+                        background:
+                          msg.sender === "You" ? "#0b3c95" : "#89898930",
+                        color: msg.sender === "You" ? "white" : "black",
                         padding: "10px",
                         borderRadius: "10px",
                         maxWidth: "60%",
                       }}
                     >
-                      <Text>{msg.content}</Text>
+                      <Text
+                        style={{
+                          color: msg.sender === "You" ? "white" : "inherit",
+                        }}
+                      >
+                        {msg.content}
+                      </Text>
+                      <div
+                        style={{
+                          fontSize: "12px",
+                          marginTop: "4px",
+                          opacity: 0.7,
+                        }}
+                      >
+                        {msg.time}
+                      </div>
                     </div>
                   </div>
                 ))}

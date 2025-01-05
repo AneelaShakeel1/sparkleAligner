@@ -199,6 +199,13 @@ const MENU_CONFIG = {
       className: SIDEBAR_CLASS,
       link: "/manufacturer-dashboard",
     },
+    {
+      label: "Chat Support",
+      key: "chat-support",
+      icon: Svgs.chat,
+      link: "/chat",
+      className: SIDEBAR_CLASS,
+    },
   ],
 };
 

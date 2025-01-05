@@ -3,20 +3,22 @@ import userReducer from "./user/userSlice";
 import { persistReducer, persistStore } from "redux-persist";
 import storage from "redux-persist/lib/storage";
 import treatmentpreviewReducer from "./treatmentpreview/treatmentpreviewSlice";
-import treatmentpreviewByAgentReducer from './treatmentPreviewByAgent/treatmentPreviewByAgentSlice'
+import treatmentpreviewByAgentReducer from "./treatmentPreviewByAgent/treatmentPreviewByAgentSlice";
 import manufacturerReducer from "./manufacturer/manufacturerSlice";
-import patientsApprovalsReducer from './patientsApprovals/patientsApprovalsSlice'
-import finalStagePreviewReducer from './FinalStagePreviewForDoctorByAgent/FinalStagePreviewForDoctorByAgentSlice'
-import doctorsApprovalReducer from './doctorApproval/doctorApprovalSlice'
+import patientsApprovalsReducer from "./patientsApprovals/patientsApprovalsSlice";
+import finalStagePreviewReducer from "./FinalStagePreviewForDoctorByAgent/FinalStagePreviewForDoctorByAgentSlice";
+import doctorsApprovalReducer from "./doctorApproval/doctorApprovalSlice";
+import authReducer from "./auth/authSlice";
 
 const rootReducer = combineReducers({
   user: userReducer,
-  treatmentpreview:treatmentpreviewReducer,
-  manufacturer:manufacturerReducer,
-  treatmentpreviewbyagent:treatmentpreviewByAgentReducer,
-  patientsApprovals:patientsApprovalsReducer,
-  finalStagePreview:finalStagePreviewReducer,
-  doctorsApproval:doctorsApprovalReducer,
+  treatmentpreview: treatmentpreviewReducer,
+  manufacturer: manufacturerReducer,
+  treatmentpreviewbyagent: treatmentpreviewByAgentReducer,
+  patientsApprovals: patientsApprovalsReducer,
+  finalStagePreview: finalStagePreviewReducer,
+  doctorsApproval: doctorsApprovalReducer,
+  auth: authReducer,
 });
 
 const persistConfig = {

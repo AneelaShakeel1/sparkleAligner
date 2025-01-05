@@ -16,6 +16,7 @@ import { adminlogin, login } from "../store/user/userSlice";
 import { useDispatch } from "react-redux";
 import PerfectScrollbar from "react-perfect-scrollbar";
 import { toast } from "react-toastify";
+import { setToken } from "../store/auth/authSlice";
 const { Content } = Layout;
 const { Option } = Select;
 const Login = () => {
@@ -38,12 +39,12 @@ const Login = () => {
       //   const resultAction = await dispatch(adminlogin(formValues));
       //   response = resultAction.payload;
       // } else {
-        const resultAction = await dispatch(login(formValues));
-        response = resultAction.payload;
+      const resultAction = await dispatch(login(formValues));
+      response = resultAction.payload;
       // }
       console.log(response, "response");
       if (response) {
-        console.log(response,'===========================')
+        console.log(response, "===========================");
         let token = response.token;
         let useremail = response.email;
         let userId = response.id;
@@ -63,6 +64,7 @@ const Login = () => {
             navigate("/manufacturer-dashboard");
           }
         }, 1000);
+        dispatch(setToken(token));
       } else {
         if (response && response.message) {
           toast.error(response.message || "Login failed: Invalid Credientials");
