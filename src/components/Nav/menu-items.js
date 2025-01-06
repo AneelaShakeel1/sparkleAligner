@@ -18,6 +18,13 @@ const MENU_CONFIG = {
       link: "/terms-and-conditions",
       className: SIDEBAR_CLASS,
     },
+    {
+      label: "Chat Support",
+      key: "chat-support",
+      icon: Svgs.chat,
+      link: "/chat",
+      className: SIDEBAR_CLASS,
+    },
   ],
   SuperAdmin: [
     {

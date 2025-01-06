@@ -9,6 +9,7 @@ const getInitialUser = () => {
       return {
         _id: decoded.userId,
         email: decoded.email,
+        role: decoded.role,
         // Add other user fields you need
       };
     } catch (error) {
@@ -40,6 +41,7 @@ const authSlice = createSlice({
         state.user = {
           _id: decoded.userId,
           email: decoded.email,
+          role: decoded.role,
           // Add other user fields you need
         };
       }

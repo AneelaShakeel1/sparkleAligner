@@ -14,7 +14,6 @@ import { SendOutlined } from "@ant-design/icons";
 import { Svgs } from "../components/Svgs/svg-icons";
 import { fetchAllUserAsync } from "../store/user/userSlice";
 import { useDispatch, useSelector } from "react-redux";
-import { SideBar } from "../components/SideBar";
 import websocketService from "../services/websocketService";
 import { setToken } from "../store/auth/authSlice";
 
@@ -25,9 +24,13 @@ const { TabPane } = Tabs;
 export default function Chat() {
   const [selectedPatient, setSelectedPatient] = useState({ messages: [] });
   const [message, setMessage] = useState("");
-  const [activeTab, setActiveTab] = useState("patient");
   const [currentConversation, setCurrentConversation] = useState(null);
   const currentUser = useSelector((state) => state.auth.user);
+  const [activeTab, setActiveTab] = useState(
+    currentUser?.role === "Doctor" || currentUser?.role === "Manufacturer"
+      ? "agent"
+      : "patient"
+  );
 
   const getAllUsers = useSelector((state) =>
     state.user ? state.user.users : []
@@ -94,6 +97,37 @@ export default function Chat() {
       return () => websocketService.disconnect();
     }
   }, [currentUser, currentConversation]);
+
+  useEffect(() => {
+    const fetchMessages = async () => {
+      if (currentConversation?._id) {
+        try {
+          const messages = await websocketService.getMessages(
+            currentConversation._id,
+            currentUser._id
+          );
+
+          if (messages && messages.length > 0) {
+            const formattedMessages = messages.map((msg) => ({
+              sender: msg.senderId === currentUser._id ? "You" : selectedPatient.name,
+              content: msg.text,
+              time: new Date(msg.createdAt).toLocaleTimeString(),
+            }));
+
+            setSelectedPatient((prev) => ({
+              ...prev,
+              messages: formattedMessages,
+            }));
+          }
+        } catch (error) {
+          console.error("Error fetching messages:", error);
+        }
+      }
+    };
+
+    fetchMessages();
+  }, [currentConversation, selectedPatient, currentUser]);
+
 
   const handleSelectPatient = async (patient) => {
     console.log("Selecting patient:", patient);
@@ -222,11 +256,31 @@ export default function Chat() {
       <Tabs
         defaultActiveKey="patient"
         onChange={setActiveTab}
-        style={{ marginBottom: 16 }}
+        style={{ marginBottom: 16, marginLeft: 20 }}
       >
-        <TabPane tab="Patients" key="patient" />
-        <TabPane tab="Doctors" key="doctor" />
-        <TabPane tab="Manufacturers" key="manufacturer" />
+        {currentUser.role === "SuperAdmin" && (
+          <>
+            <TabPane tab="Patients" key="patient" />
+            <TabPane tab="Doctors" key="doctor" />
+            <TabPane tab="Manufacturers" key="manufacturer" />
+            <TabPane tab="Agents" key="agent" />
+          </>
+        )}
+        {currentUser.role === "Agent" && (
+          <>
+            <TabPane tab="SuperAdmin" key="superAdmin" />
+            <TabPane tab="Patients" key="patient" />
+            <TabPane tab="Doctors" key="doctor" />
+            <TabPane tab="Manufacturers" key="manufacturer" />
+          </>
+        )}
+        {(currentUser.role === "Manufacturer" ||
+          currentUser.role === "Doctor") && (
+          <>
+            <TabPane tab="Agents" key="agent" />
+            <TabPane tab="SuperAdmin" key="superAdmin" />
+          </>
+        )}
       </Tabs>
 
       <Menu mode="inline" style={{ height: "100%", borderRight: 0 }}>
@@ -262,7 +316,7 @@ export default function Chat() {
     <Layout style={{ minHeight: "100vh" }}>
       {siderContent}
       <Layout>
-        {selectedPatient ? (
+        {selectedPatient._id ? (
           <>
             <Header
               style={{
@@ -278,7 +332,9 @@ export default function Chat() {
             >
               <Space>
                 <Avatar style={{ backgroundColor: "#0b3c95" }}>
-                  <Text style={{ color: "#fff", fontWeight: "bold" }}>P</Text>
+                  <Text style={{ color: "#fff", fontWeight: "bold" }}>
+                    {selectedPatient.name[0].toUpperCase()}
+                  </Text>
                 </Avatar>
                 <Text>{selectedPatient.name}</Text>
               </Space>
