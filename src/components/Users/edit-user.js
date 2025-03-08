@@ -103,7 +103,7 @@ const EditUser = ({ data }) => {
             <Form.Item label="Name:">
               <Input
                 size="large"
-                placeholder="Aneela"
+                placeholder="Edit your name"
                 className="super__select text-sm font-normal text-dark h-14"
                 value={formValues.name}
                 onChange={(e) =>
@@ -114,7 +114,7 @@ const EditUser = ({ data }) => {
             <Form.Item label="E-mail:">
               <Input
                 size="large"
-                placeholder="aneelashakeel120@gmail.com"
+                placeholder="Edit your Email"
                 className="super__select text-sm font-normal text-dark h-14"
                 value={formValues.email}
                 onChange={(e) =>
@@ -122,17 +122,7 @@ const EditUser = ({ data }) => {
                 }
               />
             </Form.Item>
-            {/* <Form.Item label="Password:">
-              <Input
-                size="large"
-                placeholder="Aneela1122"
-                className="super__select text-sm font-normal text-dark h-14"
-                value={formValues.password}
-                onChange={(e) =>
-                  setFormValues({ ...formValues, password: e.target.value })
-                }
-              />
-            </Form.Item> */}
+            
             <Form.Item>
               <Flex vertical style={{ marginTop: 20 }}>
                 <Spin spinning={loading}>

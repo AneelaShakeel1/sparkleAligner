@@ -108,7 +108,7 @@ const AddUser = () => {
             <Form.Item label="Name:">
               <Input
                 size="large"
-                placeholder="Aneela"
+                placeholder="Enter Name"
                 className="super__select text-sm font-normal text-dark h-14"
                 value={formValues.name}
                 onChange={(e) =>
@@ -119,7 +119,7 @@ const AddUser = () => {
             <Form.Item label="E-mail:">
               <Input
                 size="large"
-                placeholder="aneelashakeel120@gmail.com"
+                placeholder="Enter Email"
                 className="super__select text-sm font-normal text-dark h-14"
                 value={formValues.email}
                 onChange={(e) =>
@@ -130,7 +130,7 @@ const AddUser = () => {
             <Form.Item label="Password:">
               <Input
                 size="large"
-                placeholder="Aneela1122"
+                placeholder="Enter Password"
                 className="super__select text-sm font-normal text-dark h-14"
                 value={formValues.password}
                 onChange={(e) =>
