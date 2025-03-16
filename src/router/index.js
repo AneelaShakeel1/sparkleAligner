@@ -6,7 +6,7 @@ import ManufacturerDashboard from "../pages/manufacturerdashboard.js";
 import ManufacturersResponse from "../pages/manufacturersresponse.js";
 import Manufacturer from "../pages/manufacturer.js";
 import Doctor from "../pages/doctor.js";
-import chat from "../pages/chat.js";
+import ChatMain from "../pages/chatMain.js";
 import Analytics from "../pages/analytics.js";
 import TermsAndConditions from "../pages/termsandconditions.js";
 import PatientsResponse from "../pages/patientsresponse.js";
@@ -25,7 +25,7 @@ const routes = [
   },
   {
     path: "/chat",
-    pages: chat,
+    pages: ChatMain,
     isPublic: true,
   },
   {
