@@ -29,7 +29,7 @@ export default function Users() {
   }, [dispatch]);
 
   useEffect(() => {
-    debugger;
+    //debugger;
     if (selectedRole === "All" && role === "Agent") {
       const filtered = getAllUsers.filter(
         (user) => user.role !== "Agent" && user.role !== "SuperAdmin"

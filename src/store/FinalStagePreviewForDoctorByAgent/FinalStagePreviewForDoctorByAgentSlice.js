@@ -22,7 +22,7 @@ export const addFinalStagePreview = createAsyncThunk(
   async (finalStagePreviewData) => {
     try {
       const response = await createFinalStagePreview(finalStagePreviewData);
-      return response.data.previews;
+      return response.data.preview;
     } catch (error) {
       console.error("API Error:", error.message);
       throw (
@@ -38,7 +38,7 @@ export const fetchAllFinalStagePreviewsAsync = createAsyncThunk(
   "/fetchFinalStagePreviews",
   async () => {
     const response = await fetchAllFinalStagePreviews();
-    return response.data.previews;
+    return response.data.preview;
   }
 );
 
@@ -48,7 +48,7 @@ export const fetchFinalStagePreviewByIdAsync = createAsyncThunk(
   async (id) => {
     try {
       const response = await fetchFinalStagePreviewById(id);
-      return response.data.previews;
+      return response.data.preview;
     } catch (error) {
       console.error("API Error:", error.message);
       throw (
@@ -67,7 +67,7 @@ export const updateFinalStagePreviewAsync = createAsyncThunk(
       id,
       finalStagePreviewData,
     });
-    return response.data.previews;
+    return response.data.preview;
   }
 );
 

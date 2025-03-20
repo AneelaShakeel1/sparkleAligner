@@ -9,6 +9,7 @@ import {
   Form,
   Input,
   Button,
+  message,
 } from "antd";
 import EditUser from "./edit-user";
 import DeleteUser from "./delete-user";
@@ -28,6 +29,14 @@ function UserCategory({ data, role }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(6);
 
+  // New state for treatment preview upload
+  const [isTreatmentPreviewModalOpen, setIsTreatmentPreviewModalOpen] =
+    useState(false);
+  const [selectedPatientForTreatment, setSelectedPatientForTreatment] =
+    useState(null);
+  const [treatmentFile, setTreatmentFile] = useState(null);
+  const [uploadingTreatment, setUploadingTreatment] = useState(false);
+
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -36,7 +45,7 @@ function UserCategory({ data, role }) {
       setCurrentPage(1);
       setPageSize(6);
     }
-  }, [data]);
+  }, [data, role]);
 
   const handleEditClick = (user) => {
     setSelectedEditUser(user);
@@ -92,21 +101,115 @@ function UserCategory({ data, role }) {
     }
   };
 
+  // Opens the treatment preview modal and sets the current patient
+  const openTreatmentPreviewModal = (user) => {
+    setSelectedPatientForTreatment(user);
+    console.log(user);
+    setIsTreatmentPreviewModalOpen(true);
+  };
+
+  // Handle file selection change using a native input element
+  const handleTreatmentFileChange = (e) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setTreatmentFile(e.target.files[0]);
+    }
+  };
+
+  // Handle the treatment preview upload process
+  const handleTreatmentPreviewUpload = async () => {
+    if (!treatmentFile) {
+      message.error("Please select a file to upload.");
+      return;
+    }
+
+    const agentId = localStorage.getItem("userId");
+    if (!agentId) {
+      message.error("Agent ID not found. Please log in again.");
+      return;
+    }
+
+    try {
+      setUploadingTreatment(true);
+      message.loading({
+        content: "Uploading treatment preview...",
+        key: "uploadTP",
+      });
+
+      // Upload file to Cloudinary using unsigned upload
+      const formData = new FormData();
+      formData.append("file", treatmentFile);
+      // Set your upload preset here (ensure it matches the one configured in your Cloudinary account)
+      formData.append("upload_preset", "aneela");
+
+      const response = await fetch(
+        "https://api.cloudinary.com/v1_1/aneelacloud/upload",
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to upload: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      const fileUrl = data.secure_url;
+
+      // Prepare the payload for treatment preview endpoint
+      const payload = {
+        agentId: agentId,
+        linkedPatientId: selectedPatientForTreatment._id,
+        uploadedFiles: [
+          {
+            fileName: treatmentFile.name,
+            fileUrl: fileUrl,
+            uploadedBy: agentId,
+            uploadedAt: new Date().toISOString(),
+          },
+        ],
+      };
+
+      // Call the treatment preview API endpoint
+      const treatmentResponse = await fetch(
+        "http://localhost:8000/api/user/treatment-preview-by-agent",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        }
+      );
+
+      if (!treatmentResponse.ok) {
+        throw new Error(
+          `Failed to upload treatment preview: ${treatmentResponse.statusText}`
+        );
+      }
+
+      message.success({
+        content: "Treatment preview uploaded successfully!",
+        key: "uploadTP",
+      });
+      // Clear the file and close the modal
+      setTreatmentFile(null);
+      setIsTreatmentPreviewModalOpen(false);
+    } catch (error) {
+      console.error("Error uploading treatment preview:", error);
+      message.error({
+        content: `Failed to upload treatment preview: ${error.message}`,
+        key: "uploadTP",
+      });
+    } finally {
+      setUploadingTreatment(false);
+    }
+  };
+
+  // Define the base columns
   const columns = [
     { title: "Name", dataIndex: "name", key: "name" },
     { title: "Email", dataIndex: "email", key: "email" },
-    // {
-    //   title: "Profile",
-    //   dataIndex: "profile",
-    //   key: "profile",
-    //   render: (profile) => profile ?? "---",
-    // },
-    // {
-    //   title: "Treatment Details",
-    //   dataIndex: "treatment_details",
-    //   key: "treatment_details",
-    //   render: (treatment_details) => treatment_details ?? "---",
-    // },
     {
       title: "View",
       dataIndex: "view",
@@ -115,12 +218,6 @@ function UserCategory({ data, role }) {
         <div onClick={() => handleViewClick(user)}>{Svgs.viewgray}</div>
       ),
     },
-    // {
-    //   title: "Status",
-    //   dataIndex: "status",
-    //   key: "status",
-    //   render: (status) => status ?? "---",
-    // },
     {
       title: "Actions",
       key: "actions",
@@ -156,6 +253,19 @@ function UserCategory({ data, role }) {
       ),
     },
   ];
+
+  // Add the treatment preview column only if role is "Patient"
+  if (role === "Patient") {
+    columns.push({
+      title: "Patient treatmentPreview",
+      key: "treatmentPreview",
+      render: (user) => (
+        <Button onClick={() => openTreatmentPreviewModal(user)}>
+          Click to upload the treatment Preview
+        </Button>
+      ),
+    });
+  }
 
   return (
     <Layout>
@@ -201,6 +311,27 @@ function UserCategory({ data, role }) {
           style={{ marginTop: 20 }}
         />
       )}
+      <Modal
+        title="Upload Treatment Preview"
+        open={isTreatmentPreviewModalOpen}
+        onCancel={() => setIsTreatmentPreviewModalOpen(false)}
+        footer={null}
+      >
+        <Form layout="vertical">
+          <Form.Item label="Select File">
+            <input type="file" onChange={handleTreatmentFileChange} />
+          </Form.Item>
+          <Form.Item>
+            <Button
+              type="primary"
+              onClick={handleTreatmentPreviewUpload}
+              loading={uploadingTreatment}
+            >
+              Upload
+            </Button>
+          </Form.Item>
+        </Form>
+      </Modal>
     </Layout>
   );
 }
