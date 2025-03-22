@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { Content } from "antd/es/layout/layout";
-import { SideBar } from "../components/SideBar";
 import PerfectScrollbar from "react-perfect-scrollbar";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchAllTreatmentPreviewAsync } from "../store/treatmentpreview/treatmentpreviewSlice";
@@ -21,6 +20,10 @@ import { Svgs } from "../components/Svgs/svg-icons";
 
 export default function Analytics() {
   const dispatch = useDispatch();
+  
+  // Moved useSelector inside the component.
+  const users = useSelector((state) => (state.user ? state.user.users : []));
+  
   const { treatmentpreviews } = useSelector((state) => state.treatmentpreview);
   const { patientapprovals } = useSelector((state) => state.patientsApprovals);
   const { doctorapprovals } = useSelector((state) => state.doctorsApproval);
@@ -38,6 +41,15 @@ export default function Analytics() {
   const [waitingPatientDetails, setWaitingPatientDetails] = useState([]);
   const [waitingDateClicked, setWaitingDateClicked] = useState("");
 
+  // Count metrics based on the users slice.
+  const totalUsers = users.length;
+  const totalPatients = users.filter((user) => user.role === "Patient").length;
+  const totalDoctors = users.filter((user) => user.role === "Doctor").length;
+  const totalManufacturers = users.filter(
+    (user) => user.role === "Manufacturer"
+  ).length;
+  const totalAgents = users.filter((user) => user.role === "Agent").length;
+
   useEffect(() => {
     dispatch(fetchAllTreatmentPreviewAsync());
     dispatch(fetchAllPatientsApprovalsAsync());
@@ -51,7 +63,6 @@ export default function Analytics() {
     const day = String(date.getDate()).padStart(2, "0");
     const month = String(date.getMonth() + 1).padStart(2, "0");
     const year = date.getFullYear();
-
     return `${day}-${month}-${year}`;
   };
 
@@ -79,7 +90,6 @@ export default function Analytics() {
       const patientApproval = patientapprovals.find(
         (approval) => approval.patientId._id === linkedPatientId._id
       );
-
       if (!patientApproval) {
         if (!acc[date]) {
           acc[date] = [];
@@ -99,6 +109,26 @@ export default function Analytics() {
     })
   );
 
+  const statusCounts = {
+    "Total Treatment Previews (TP) uploaded": treatmentpreviews.length,
+    "TPs waiting for patient approval": treatmentpreviewsbyagent?.filter(
+      (treatmentpreviewByAgent) =>
+        !patientapprovals.some(
+          (patientApproval) =>
+            patientApproval.patientId._id ===
+            treatmentpreviewByAgent.linkedPatientId._id
+        )
+    ).length,
+    "TPs pending doctor review": finalStagePreviews?.filter(
+      (finalStagePreview) =>
+        !doctorapprovals.some(
+          (doctorapproval) =>
+            doctorapproval.patientId._id ===
+            finalStagePreview.linkedPatientId._id
+        )
+    ).length,
+  };
+
   const handleDataPointClick = (date) => {
     setDateClicked(date);
     const patientsOnDate = uploadData[date];
@@ -112,6 +142,7 @@ export default function Analytics() {
       setModalVisible(true);
     }
   };
+
   const handleWaitingDataPointClick = (date) => {
     setWaitingDateClicked(date);
     const patientsOnDate = waitingData[date];
@@ -126,45 +157,54 @@ export default function Analytics() {
     }
   };
 
-  const statusCounts = {
-    "Total Treatment Previews (TP) uploaded": treatmentpreviews.length,
-    "Number of TPs waiting for patient approval":
-      treatmentpreviewsbyagent?.filter(
-        (treatmentpreviewByAgent) =>
-          !patientapprovals.some(
-            (patientApproval) =>
-              patientApproval.patientId._id ===
-              treatmentpreviewByAgent.linkedPatientId._id
-          )
-      ).length,
-    "Number of TPs pending doctor review": finalStagePreviews?.filter(
-      (finalStagePreview) =>
-        !doctorapprovals.some(
-          (doctorapproval) =>
-            doctorapproval.patientId._id ===
-            finalStagePreview.linkedPatientId._id
-        )
-    ).length,
-    "Number of TPs approved by patients": patientapprovals?.filter(
-      (treatmentpreview) => treatmentpreview.status === "approve"
-    ).length,
-    "Number of TPs rejected by patients": patientapprovals?.filter(
-      (treatmentpreview) => treatmentpreview.status === "deny"
-    ).length,
-    "Number of TPs rejected by doctors": doctorapprovals?.filter(
-      (treatmentpreview) => treatmentpreview.status === "approve"
-    ).length,
-    "Number of TPs rejected by doctors": doctorapprovals?.filter(
-      (treatmentpreview) => treatmentpreview.status === "deny"
-    ).length,
-  };
-
   return (
     <div className="h-full min-h-screen grid grid-columns">
-      <SideBar />
+      {/* Grid of 8 summary boxes */}
+      <div className="grid grid-cols-4 gap-4 p-4">
+        <div className="bg-white p-4 rounded shadow text-center">
+          <p className="text-lg font-semibold">{totalUsers}</p>
+          <p className="text-sm text-gray-500">Total Users</p>
+        </div>
+        <div className="bg-white p-4 rounded shadow text-center">
+          <p className="text-lg font-semibold">{totalPatients}</p>
+          <p className="text-sm text-gray-500">Total Patients</p>
+        </div>
+        <div className="bg-white p-4 rounded shadow text-center">
+          <p className="text-lg font-semibold">{totalDoctors}</p>
+          <p className="text-sm text-gray-500">Total Doctors</p>
+        </div>
+        <div className="bg-white p-4 rounded shadow text-center">
+          <p className="text-lg font-semibold">{totalManufacturers}</p>
+          <p className="text-sm text-gray-500">Total Manufacturers</p>
+        </div>
+        <div className="bg-white p-4 rounded shadow text-center">
+          <p className="text-lg font-semibold">{totalAgents}</p>
+          <p className="text-sm text-gray-500">Total Agents</p>
+        </div>
+        <div className="bg-white p-4 rounded shadow text-center">
+          <p className="text-lg font-semibold">
+            {statusCounts["Total Treatment Previews (TP) uploaded"]}
+          </p>
+          <p className="text-sm text-gray-500">TP Uploaded</p>
+        </div>
+        <div className="bg-white p-4 rounded shadow text-center">
+          <p className="text-lg font-semibold">
+            {statusCounts["TPs waiting for patient approval"]}
+          </p>
+          <p className="text-sm text-gray-500">TPs Waiting Approval</p>
+        </div>
+        <div className="bg-white p-4 rounded shadow text-center">
+          <p className="text-lg font-semibold">
+            {statusCounts["TPs pending doctor review"]}
+          </p>
+          <p className="text-sm text-gray-500">TPs Pending Doctor Review</p>
+        </div>
+      </div>
+
       <PerfectScrollbar style={{ height: "100vh" }}>
         <Content className="pr-12 pt-5 pb-5">
           <div style={{ marginBottom: 20 }}>
+           
             <div
               style={{
                 backgroundColor: "white",
@@ -215,7 +255,7 @@ export default function Analytics() {
                 marginBottom: 20,
               }}
             >
-              {`Number of TPs waiting for patient approval: ${statusCounts["Number of TPs waiting for patient approval"]}`}
+              {`Number of TPs waiting for patient approval: ${statusCounts["TPs waiting for patient approval"]}`}
             </div>
             <ResponsiveContainer width="100%" height={300}>
               <LineChart
